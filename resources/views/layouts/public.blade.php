@@ -6,8 +6,8 @@
 <!doctype html><html lang="en"><head>@include('partials.head')<title>@yield('title', $gym) - {{ $gym }}</title>
 <meta name="description" content="@yield('desc', $gym.' - a friendly local gym with personal training.')">
 <link rel="canonical" href="{{ url()->current() }}">
-<meta property="og:type" content="website"><meta property="og:site_name" content="{{ $gym }}"><meta property="og:title" content="@yield('title', $gym) - {{ $gym }}"><meta property="og:description" content="@yield('desc', $gym.' - a friendly local gym with personal training.')"><meta property="og:url" content="{{ url()->current() }}"><meta property="og:image" content="{{ asset('img/icon-192.png') }}"></head>
-<body class="pub">
+<meta property="og:type" content="website"><meta property="og:site_name" content="{{ $gym }}"><meta property="og:title" content="@yield('title', $gym) - {{ $gym }}"><meta property="og:description" content="@yield('desc', $gym.' - a friendly local gym with personal training.')"><meta property="og:url" content="{{ url()->current() }}"><meta property="og:image" content="{{ asset('img/icon-192.png') }}"><script type="application/ld+json">{!! json_encode(['@context' => 'https://schema.org', '@type' => 'HealthClub', 'name' => $gym, 'url' => url('/'), 'telephone' => (string) \App\Models\Setting::get('gym_phone'), 'address' => (string) \App\Models\Setting::get('gym_address'), 'image' => asset('img/icon-192.png')], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script></head>
+<body class="pub"><a class="skip" href="#main">Skip to content</a>
 <header class="phead" id="phead"><div class="in">
   <a href="{{ route('home') }}" aria-label="{{ $gym }} home">@include('partials.logo')</a>
   <button class="pnav-toggle" id="pnav-toggle" type="button" aria-label="Menu" aria-expanded="false">@include('partials.i', ['n' => 'menu'])</button>
@@ -17,7 +17,7 @@
     @else<a class="cta" href="{{ route('login') }}">Sign in</a>@endif
   </nav>
 </div></header>
-<main>@yield('content')</main>
+<main id="main">@yield('content')</main>
 <footer class="pfoot">
   <div class="in">
     <div>@include('partials.logo')<p class="blurb">A small gym on purpose. Personal training from the owner, plans made for you, and a simple app to track it all.</p></div>

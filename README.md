@@ -97,3 +97,14 @@ Take a backup (Admin → Backup & export, and cPanel → Backup) regularly.
 
 `app/Http/Controllers/Admin` and `Member` (screens) · `app/Services/DietGenerator.php`, `PriceUpdater.php` · `app/Support/Dummy.php` ·
 `resources/views` · `database/seeders/DummySeeder.php` · `tests/Feature` · `.github/workflows/deploy.yml`.
+
+## Quality and maintenance checklist
+
+How this project follows common web-development best practices, and what to do to keep it healthy.
+
+- **Tests and CI:** `php artisan test` runs the whole suite (Feature + Unit). GitHub Actions runs it on every push to `main` and every pull request, and also runs `composer audit` to catch known-vulnerable packages.
+- **Security:** inputs are validated on the server, login and the contact form are rate-limited, pages send security headers (`app/Http/Middleware/SecurityHeaders.php`), and the app and admin are hidden from search engines. Run `composer audit` and `composer update` regularly (monthly is a good habit), then re-run the tests.
+- **Accessibility:** a "Skip to content" link, one `<main>` landmark per page, visible keyboard focus, and reduced-motion support. Always give new images an `alt` text.
+- **Speed:** photos load lazily, static files are cached (`vercel.json`), and there is no build step. When you add photos, save them as compressed `.webp` or `.jpg` (under about 300 KB each).
+- **Search and sharing:** public pages have a title, description, canonical link, social-sharing tags and gym details for Google (JSON-LD). `/sitemap.xml` lists the public pages.
+- **Maintenance:** update dependencies monthly, back up the database before changes, and re-read this list every few months.

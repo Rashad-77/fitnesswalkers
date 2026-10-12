@@ -10,14 +10,15 @@
 @endphp
 <!doctype html><html lang="en"><head>@include('partials.head')<meta name="robots" content="noindex"><title>@yield('title', 'Home') - {{ $gym }}</title></head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <div class="mshell">
   <div class="mtop"><a href="{{ route('member.home') }}">@include('partials.logo')</a>
     <a class="me {{ request()->routeIs('member.me', 'member.membership', 'member.announcements') ? 'on' : '' }}" href="{{ route('member.me') }}" aria-label="Me: membership, news and settings">
       {!! $svg('<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 16 0v1"/>') !!}<span>Account</span></a></div>
-  <div class="mpage">
+  <main class="mpage" id="main">
     @include('partials.flash')
     @yield('content')
-  </div>
+  </main>
   <nav class="tabs" aria-label="Main"><div class="in">
     @foreach ($tabs as $t)
       <a class="{{ request()->routeIs($t[3]) ? 'on' : '' }}" href="{{ route($t[0]) }}"><span class="ic">{!! $t[2] !!}</span>{{ $t[1] }}</a>

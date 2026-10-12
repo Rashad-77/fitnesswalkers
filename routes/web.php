@@ -11,6 +11,10 @@ Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/pricing', [PageController::class, 'pricing'])->name('pricing');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 Route::post('/contact', [PageController::class, 'enquire'])->middleware('throttle:5,1')->name('enquiry.store');
+Route::get('/sitemap.xml', function () {
+    $urls = collect(['home', 'about', 'pricing', 'contact', 'privacy', 'terms'])->map(fn ($r) => '<url><loc>'.e(route($r)).'</loc></url>')->implode('');
+    return response('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'.$urls.'</urlset>', 200, ['Content-Type' => 'application/xml']);
+})->name('sitemap');
 Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('/terms', [PageController::class, 'terms'])->name('terms');
 Route::get('/dashboard', [AuthController::class, 'home'])->name('dashboard');

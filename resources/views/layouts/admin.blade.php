@@ -5,7 +5,7 @@
   $label = \App\Support\AdminNav::currentLabel($groups);
 @endphp
 <!doctype html><html lang="en"><head>@include('partials.head')<meta name="robots" content="noindex"><title>@yield('title', 'Admin') - {{ $gym }}</title></head>
-<body>
+<body><a class="skip" href="#main">Skip to content</a>
 <div class="shell">
   <aside class="side" id="side" aria-label="Main menu">
     <a class="brand" href="{{ route('admin.dashboard') }}">@include('partials.logo')<span class="brandtag">Owner area</span></a>
@@ -53,10 +53,10 @@
     @if ($dummyTotal > 0 && request()->routeIs('admin.dashboard'))
       <div class="dummybar">This is sample data ({{ $dummyTotal }} rows). <a href="{{ route('admin.placeholders') }}">See what to replace</a></div>
     @endif
-    <div class="page">
+    <main class="page" id="main">
       @include('partials.flash')
       @yield('content')
-    </div>
+    </main>
   </div>
 </div>
 <script src="/js/app.js"></script>

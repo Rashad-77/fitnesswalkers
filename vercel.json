@@ -2,9 +2,34 @@
   "version": 2,
   "outputDirectory": "public",
   "functions": {
-    "api/index.php": { "runtime": "vercel-php@0.7.4" }
+    "api/index.php": {
+      "runtime": "vercel-php@0.7.4"
+    }
   },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index.php" }
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.php"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(css|js)/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/img/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    }
   ]
 }

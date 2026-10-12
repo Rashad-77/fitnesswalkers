@@ -3,6 +3,7 @@ name: Tests
 on:
   push:
     branches:
+      - main
       - master
       - '*.x'
   pull_request:
@@ -44,6 +45,9 @@ jobs:
 
       - name: Generate app key
         run: php artisan key:generate
+
+      - name: Check dependencies for known vulnerabilities
+        run: composer audit
 
       - name: Execute tests
         run: php artisan test

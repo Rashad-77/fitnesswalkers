@@ -39,4 +39,13 @@ class ShowcaseTest extends TestCase
         $owner = \App\Models\User::where('role', 'admin')->first();
         $this->actingAs($owner)->get(route('admin.settings'))->assertOk()->assertSee('Website photos')->assertSee('hero-1.jpg')->assertSee('trainer.jpg');
     }
+
+    public function test_public_pages_have_seo_data_security_headers_and_a_sitemap(): void
+    {
+        $this->seed(DummySeeder::class);
+        $r = $this->get(route('home'))->assertOk()->assertSee('application/ld+json', false)->assertSee('og:title', false)->assertSee('rel="canonical"', false)->assertSee('Skip to content');
+        $r->assertHeader('X-Content-Type-Options', 'nosniff')->assertHeader('X-Frame-Options', 'SAMEORIGIN');
+        $this->get(route('sitemap'))->assertOk()->assertSee(route('pricing'), false);
+        $this->actingAs(\App\Models\User::where('role', 'admin')->first())->get(route('admin.dashboard'))->assertSee('name="robots" content="noindex"', false)->assertSee('id="main"', false);
+    }
 }
