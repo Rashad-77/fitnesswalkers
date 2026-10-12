@@ -777,3 +777,51 @@ body.sheet-open{overflow:hidden}
 @keyframes sheetUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
 @media(max-width:380px){.mp-sum{grid-template-columns:1fr;justify-items:center}.mp-bars{width:100%}.mp-ring{width:8rem;height:8rem}}
 @media(prefers-reduced-motion:reduce){.sheet-body{animation:none}}
+
+/* ================= responsive member app =================
+   Phones: one column with the tab bar at the bottom (the rules above).
+   Tablets and up: a sidebar replaces the tab bar and the content uses the whole width in columns. */
+html{-webkit-text-size-adjust:100%}
+.mpage{padding:clamp(.8rem,3.5vw,1.2rem)} .mpage img,.mpage svg,.mpage video{max-width:100%}
+.mpage h1{font-size:clamp(1.45rem,5.5vw,1.9rem)}
+.btn,.seg label span,.tabsbar a,.mp-tabs a{min-height:44px}
+.btn.sm{min-height:38px}
+@media(max-width:360px){
+  .mh-stats{gap:.4rem} .mh-stats a{padding:.7rem .6rem} .mh-stats b{font-size:1.25rem}
+  .mh-hero h2{font-size:1.7rem} .mh-hero{padding:1rem} .mh-row{gap:.6rem}
+  .mp-day{padding:.45rem 0 .5rem} .mp-day b{font-size:.95rem} .mp-meal,.mp-sum,.mp-card{padding:.9rem}
+  .mp-act{gap:.4rem} .mp-step button{width:2rem;height:2rem} .mp-tiles b{font-size:1.4rem}
+}
+@media(min-width:600px) and (max-width:799px){
+  .mshell{max-width:760px} .tabs .in{max-width:760px}
+  .mh-stats b{font-size:1.8rem}
+}
+@media(min-width:800px){
+  .mshell{max-width:none;box-shadow:none;padding-bottom:0;display:grid;grid-template-columns:232px minmax(0,1fr);grid-template-rows:auto 1fr;min-height:100vh}
+  .mtop{grid-column:1/-1;grid-row:1;padding:.7rem 1.4rem}
+  .mpage{grid-column:2;grid-row:2;width:100%;max-width:1120px;margin:0 auto;padding:1.6rem 2rem 3rem}
+  .tabs{grid-column:1;grid-row:2;position:sticky;top:56px;height:calc(100vh - 56px);align-self:start;display:block;background:var(--canopy);border-top:0;padding:1.2rem .8rem;backdrop-filter:none}
+  .tabs .in{flex-direction:column;gap:.25rem;max-width:none}
+  .tabs a{flex:none;flex-direction:row;justify-content:flex-start;gap:.8rem;text-align:left;padding:.75rem 1rem;border-radius:12px;font-size:.98rem;min-height:44px}
+  .tabs a:hover{background:rgba(255,255,255,.07)} .tabs a.on{background:rgba(184,240,60,.14)}
+  .tabs a .ic .ico{width:1.3rem;height:1.3rem}
+  .mpage h1{font-size:1.9rem}
+  /* home */
+  .mh-top{margin-bottom:1.3rem} .mh-top h1{font-size:2rem}
+  .mh-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:0 1.4rem;align-items:start}
+  .mh-hero{grid-column:1/-1;display:grid;grid-template-columns:1fr 1.15fr;gap:1.5rem;align-items:center;padding:1.6rem}
+  .mh-hero .mh-row{grid-column:1;grid-row:1/3} .mh-hero .mh-week{grid-column:2;margin:0} .mh-hero .mh-foot{grid-column:2;border-top:0;padding-top:0}
+  .mh-hero h2{font-size:2.5rem}
+  .mh-main,.mh-side{min-width:0} .mh-stats{grid-column:1/-1}
+  /* meal planner */
+  .mp-tabs{max-width:460px}
+  .mp-layout{display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:1.4rem;align-items:start}
+  .mp-aside{position:sticky;top:76px;max-height:calc(100vh - 92px);overflow:auto} .mp-sum{grid-template-columns:1fr;justify-items:center;text-align:left}
+  .mp-sum .mp-bars{width:100%} .mp-ring{width:9rem;height:9rem}
+  .mp-meals{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:1rem;align-items:start} .mp-meals .mp-meal{margin:0}
+  .mp-tiles{grid-template-columns:repeat(4,1fr)}
+  .mp-card{max-width:760px}
+  .sheet{align-items:center} .sheet-body{max-width:520px;border-radius:22px;max-height:84vh;padding-bottom:1.2rem}
+  .sheet-grab{display:none}
+}
+@media(min-width:1180px){ .mp-layout{grid-template-columns:380px minmax(0,1fr)} }

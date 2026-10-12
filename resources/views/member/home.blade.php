@@ -15,6 +15,7 @@
 
 @if ($m->balanceDue() > 0)<div class="alert warn">You still have {{ rs($m->balanceDue()) }} to pay. <a href="{{ route('member.membership') }}">See details</a></div>@endif
 
+<div class="mh-grid">
 {{-- 1. Today: the one thing to do next --}}
 <section class="mh-hero" aria-label="Today">
   <div class="mh-row">
@@ -49,6 +50,7 @@
   <a href="{{ route('member.membership') }}"><b>{{ $ms && $left >= 0 && $st !== 'frozen' ? $left : '-' }}<small>{{ $ms && $left >= 0 && $st !== 'frozen' ? ' days' : '' }}</small></b><span>left on your plan</span></a>
 </section>
 
+<div class="mh-main">
 {{-- 3. Food today --}}
 <section class="mh-card" aria-label="Food today">
   <div class="mh-head"><h2>{!! AdminNav::icon('food') !!} Food today</h2><a href="{{ route('member.diet') }}">{{ $meals ? 'Open plan' : 'Set up' }} &rsaquo;</a></div>
@@ -64,6 +66,8 @@
   @endif
 </section>
 
+</div>
+<div class="mh-side">
 {{-- 4. Membership --}}
 <section class="mh-card" aria-label="Membership">
   <div class="mh-head"><h2>{!! AdminNav::icon('card') !!} Membership</h2><a href="{{ route('member.membership') }}">Details &rsaquo;</a></div>
@@ -83,4 +87,6 @@
   @foreach ($announcements as $a)<article class="mh-news"><b>{{ $a->title }}</b><time>{{ $a->published_at->format('d M') }}</time><p>{{ $a->body }}</p></article>@endforeach
 </section>
 @endif
+</div>
+</div>
 @endsection

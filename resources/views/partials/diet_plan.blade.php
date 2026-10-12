@@ -15,6 +15,8 @@
 @endphp
 @foreach ($plan['warnings'] ?? [] as $w)<div class="alert warn">{{ $w }}</div>@endforeach
 
+<div class="mp-layout">
+<div class="mp-aside">
 {{-- the week --}}
 <nav class="mp-week" aria-label="Day of the week">
   @for ($i = 1; $i <= 7; $i++)
@@ -46,7 +48,10 @@
   @if ($problems->isNotEmpty())<p class="mp-hint">{{ $problems->implode(', ') }}.@if ($swappable) Change a dish or portion to bring it back.@endif</p>@endif
 </section>
 
+</div>
+<div class="mp-main">
 {{-- the meals --}}
+<div class="mp-meals">
 @foreach ($d['meals'] as $mi => $meal)
   @php
     $isSnack = str_starts_with($meal['slot'], 'snack');
@@ -89,11 +94,14 @@
     @endif
   </article>
 @endforeach
+</div>
 
 <section class="mp-water" aria-label="Water">
   <div><b>Water</b><span>{{ $water['glasses'] }} glasses · about {{ $water['litres'] }} L today</span></div>
   <p aria-hidden="true">@for ($g = 0; $g < $water['glasses']; $g++)<i></i>@endfor</p>
 </section>
+</div>
+</div>
 
 @if ($swappable && $ui)
   <script type="application/json" id="dietui">{!! json_encode($ui + ['day' => $di, 'url' => route('member.diet.dish')], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
