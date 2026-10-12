@@ -18,7 +18,7 @@ $defaults = [
     'APP_PACKAGES_CACHE' => '/tmp/storage/bootstrap-cache/packages.php', 'APP_SERVICES_CACHE' => '/tmp/storage/bootstrap-cache/services.php',
     'APP_CONFIG_CACHE' => '/tmp/storage/bootstrap-cache/config.php', 'APP_ROUTES_CACHE' => '/tmp/storage/bootstrap-cache/routes.php',
     'APP_EVENTS_CACHE' => '/tmp/storage/bootstrap-cache/events.php',
-    'SHOW_ERRORS' => '1',   // demo only: show a short error message instead of a blank 500. Set SHOW_ERRORS=0 in Vercel to hide it.
+    'SHOW_ERRORS' => '0',   // set SHOW_ERRORS=1 in Vercel to show a short error message instead of a blank 500 page when debugging.
     'SESSION_DRIVER' => 'cookie', 'CACHE_STORE' => 'array',   // no shared storage between servers, so keep these out of the database
 ];
 foreach ($defaults as $key => $value) {
