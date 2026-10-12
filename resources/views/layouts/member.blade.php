@@ -8,7 +8,7 @@
     ['member.progress', 'Progress', $svg('<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>'), 'member.progress*'],
   ];
 @endphp
-<!doctype html><html lang="en"><head>@include('partials.head')<title>@yield('title', 'Home') - {{ $gym }}</title></head>
+<!doctype html><html lang="en"><head>@include('partials.head')<meta name="robots" content="noindex"><title>@yield('title', 'Home') - {{ $gym }}</title></head>
 <body>
 <div class="mshell">
   <div class="mtop"><a href="{{ route('member.home') }}">@include('partials.logo')</a>

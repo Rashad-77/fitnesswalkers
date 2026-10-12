@@ -4,7 +4,7 @@
   $groups = \App\Support\AdminNav::groups();
   $label = \App\Support\AdminNav::currentLabel($groups);
 @endphp
-<!doctype html><html lang="en"><head>@include('partials.head')<title>@yield('title', 'Admin') - {{ $gym }}</title></head>
+<!doctype html><html lang="en"><head>@include('partials.head')<meta name="robots" content="noindex"><title>@yield('title', 'Admin') - {{ $gym }}</title></head>
 <body>
 <div class="shell">
   <aside class="side" id="side" aria-label="Main menu">

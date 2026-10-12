@@ -4,7 +4,9 @@
   $u = auth()->user();
 @endphp
 <!doctype html><html lang="en"><head>@include('partials.head')<title>@yield('title', $gym) - {{ $gym }}</title>
-<meta name="description" content="@yield('desc', $gym.' - a friendly local gym with personal training.')"></head>
+<meta name="description" content="@yield('desc', $gym.' - a friendly local gym with personal training.')">
+<link rel="canonical" href="{{ url()->current() }}">
+<meta property="og:type" content="website"><meta property="og:site_name" content="{{ $gym }}"><meta property="og:title" content="@yield('title', $gym) - {{ $gym }}"><meta property="og:description" content="@yield('desc', $gym.' - a friendly local gym with personal training.')"><meta property="og:url" content="{{ url()->current() }}"><meta property="og:image" content="{{ asset('img/icon-192.png') }}"></head>
 <body class="pub">
 <header class="phead" id="phead"><div class="in">
   <a href="{{ route('home') }}" aria-label="{{ $gym }} home">@include('partials.logo')</a>

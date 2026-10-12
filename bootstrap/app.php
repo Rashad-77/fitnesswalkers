@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         if (env('VERCEL')) {
             $middleware->trustProxies(at: '*');
         }
+        $middleware->appendToGroup('web', \App\Http\Middleware\SecurityHeaders::class);
         $middleware->alias(['role' => \App\Http\Middleware\EnsureRole::class]);
         $middleware->redirectGuestsTo(fn () => route('login'));
     })
