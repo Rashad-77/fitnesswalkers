@@ -14,6 +14,10 @@ define('LARAVEL_START', microtime(true));
 $defaults = [
     'APP_ENV' => 'production', 'APP_DEBUG' => 'false', 'LOG_CHANNEL' => 'stderr', 'QUEUE_CONNECTION' => 'sync',
     'DB_CONNECTION' => 'sqlite', 'DB_DATABASE' => '/tmp/database.sqlite',
+    // Laravel keeps small cache files in bootstrap/cache, which is read-only on Vercel, so they go to /tmp.
+    'APP_PACKAGES_CACHE' => '/tmp/storage/bootstrap-cache/packages.php', 'APP_SERVICES_CACHE' => '/tmp/storage/bootstrap-cache/services.php',
+    'APP_CONFIG_CACHE' => '/tmp/storage/bootstrap-cache/config.php', 'APP_ROUTES_CACHE' => '/tmp/storage/bootstrap-cache/routes.php',
+    'APP_EVENTS_CACHE' => '/tmp/storage/bootstrap-cache/events.php',
     'SHOW_ERRORS' => '1',   // demo only: show a short error message instead of a blank 500. Set SHOW_ERRORS=0 in Vercel to hide it.
     'SESSION_DRIVER' => 'cookie', 'CACHE_STORE' => 'array',   // no shared storage between servers, so keep these out of the database
 ];
@@ -40,7 +44,7 @@ if ($problems) {
 }
 
 $storage = '/tmp/storage';
-foreach (['framework/cache/data', 'framework/sessions', 'framework/views', 'logs'] as $dir) {
+foreach (['framework/cache/data', 'framework/sessions', 'framework/views', 'logs', 'bootstrap-cache'] as $dir) {
     is_dir("$storage/$dir") || mkdir("$storage/$dir", 0755, true);
 }
 
