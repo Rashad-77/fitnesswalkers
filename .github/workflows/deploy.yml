@@ -1,0 +1,73 @@
+# Runs on every push to main: tests first, then (only if they pass) uploads to register.lk.
+# One-time setup is in README.md ("Putting it online"). Secrets are set in GitHub > Settings > Secrets.
+name: Test and deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, mbstring, bcmath, fileinfo
+      - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env && php artisan key:generate
+      - run: php artisan test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, mbstring, bcmath, fileinfo
+      - name: Install production packages
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      # 1) The application (everything except the public web folder) goes OUTSIDE public_html.
+      - name: Upload app
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ secrets.FTP_PROTOCOL || 'ftp' }}
+          local-dir: ./
+          server-dir: ${{ secrets.APP_DIR || '/fitnesswalkers/' }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            public/**
+            tests/**
+            node_modules/**
+            storage/logs/*.log
+            storage/framework/cache/data/**
+            storage/framework/sessions/*
+            !storage/framework/sessions/.gitignore
+            storage/framework/views/*.php
+            .env
+            database/database.sqlite
+
+      # 2) The public folder goes into public_html (the folder the website is served from).
+      - name: Prepare public folder
+        run: cp deploy/public_html_index.php public/index.php
+      - name: Upload public site
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ secrets.FTP_PROTOCOL || 'ftp' }}
+          local-dir: ./public/
+          server-dir: ${{ secrets.PUBLIC_DIR || '/public_html/' }}
+          exclude: |
+            uploads/**
+            hot

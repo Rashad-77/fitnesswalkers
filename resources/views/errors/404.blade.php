@@ -1,0 +1,1 @@
+@include('errors.layout', ['code' => 404, 'title' => 'We cannot find that page', 'message' => 'The link may be old or mistyped. Try the home page, or sign in to get to your account.', 'back' => false])

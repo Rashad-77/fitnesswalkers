@@ -1,0 +1,1 @@
+@include('errors.layout', ['code' => 500, 'title' => 'Something went wrong on our side', 'message' => 'Your information is safe. Try again in a moment, and tell the owner if it keeps happening.', 'back' => true])

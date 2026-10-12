@@ -1,0 +1,1 @@
+@include('errors.layout', ['code' => 403, 'title' => 'You cannot open this page', 'message' => 'This area is for a different kind of account. If you think that is a mistake, ask the gym owner.', 'back' => true])
