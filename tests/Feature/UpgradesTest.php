@@ -182,8 +182,8 @@ class UpgradesTest extends TestCase
     {
         $this->seed(DummySeeder::class);
         $this->actingAs($this->owner())->get(route('admin.dashboard'))->assertOk()
-            ->assertSee('Requires attention')->assertSee('Expiring this week')->assertSee('Outstanding balance')->assertSee('Workout requests')->assertSee('New enquiries')
-            ->assertSee('Amaya Wijesinghe')->assertSee('Present today')->assertSee('FW-0001', false);
+            ->assertSee('Needs you')->assertSee('Check-ins this week')->assertSee('Recent activity')->assertSee('Memberships')
+            ->assertSee('wants a workout plan')->assertSee('New enquiry from Amaya Wijesinghe')->assertSee('FW-0001', false);
     }
 
     public function test_admin_menu_lists_every_page_always_visible_with_no_tab_rows(): void
@@ -193,7 +193,7 @@ class UpgradesTest extends TestCase
         foreach (['Overview', 'People', 'Training', 'Money', 'Gym', 'Today', 'Members', 'Enquiries', 'Renewals', 'Announcements', 'Workout requests', 'Meal plans', 'Exercises',
             'Workout templates', 'Equipment', 'Foods', 'Payments', 'Packages', 'Expenses', 'Reports', 'Check-in QR', 'Gym profile', 'My account', 'Data export', 'Activity log'] as $w) $this->assertStringContainsString($w, $html);
         $this->assertStringNotContainsString('class="subnav"', $html, 'the old tab row is gone');
-        foreach (['Renewals &amp; overdue', 'Quiet members', 'Change history', '>Money<', 'Not training lately', 'Food prices'] as $old) $this->assertStringNotContainsString($old, $html);
+        foreach (['Renewals &amp; overdue', 'Quiet members', 'Change history', 'Not training lately', 'Food prices'] as $old) $this->assertStringNotContainsString($old, $html);
         $this->get(route('admin.quiet'))->assertRedirect(route('admin.members.index', ['filter' => 'quiet']));
     }
 

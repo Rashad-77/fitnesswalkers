@@ -580,3 +580,9 @@ input[type=checkbox],input[type=radio]{accent-color:var(--fern)}
 .arow{display:flex;gap:.7rem;padding:.5rem 0;border-bottom:1px solid #eef2e9;font-size:.9rem} .arow:last-of-type{border:0} .arow small{display:block;color:var(--mut);font-size:.78rem}
 .adot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--lime-d);margin-top:.5rem}
 @media(max-width:560px){.todo .trow{flex-wrap:wrap} .todo .btn{margin-left:calc(40px + .8rem)}}
+.side .sec{padding:0;background:none;position:static}
+.card svg.chart{max-height:250px}
+.side{padding-top:.8rem} .side .brand{padding-bottom:.6rem}
+.side a.nav,.side .sidefoot button.nav{padding:.4rem .75rem;font-size:.9rem}
+.side .sec{margin:.85rem .8rem .25rem}
+.side .sidefoot{margin-top:.6rem;padding-top:.5rem}
