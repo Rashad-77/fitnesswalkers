@@ -1,8 +1,6 @@
 <?php
 
 return [
-    // JSON feed of {"name": "...", "price_per_kg": 123} used by `php artisan foods:update-prices`.
-    'price_feed_url' => env('PRICE_FEED_URL'),
     'currency' => 'Rs.',
     // A member with no workout logged for this many days appears in the "quiet members" list.
     'quiet_days' => 14,

@@ -67,6 +67,7 @@ class DietEngine
         $days = max(0, min(7, (int) ($in['train_days'] ?? 0)));
         $mins = max(15, min(180, (int) ($in['train_minutes'] ?? 45)));
         $tdee = min($bmr * 2.2, $bmr * $base + $days * $mins * 6 / 7);
+        $tdee *= ['slow' => 0.95, 'fast' => 1.05][$in['metabolism'] ?? 'average'] ?? 1.0;          // how the person says their body responds to food
 
         $goal = $in['goal'] ?? 'maintain';
         $steady = ($in['pace'] ?? 'gentle') === 'steady';
@@ -78,6 +79,7 @@ class DietEngine
         // Protein: more for people who train. The International Society of Sports Nutrition range for exercising people is 1.4 to 2.0 g per kg;
         // we use the lower half, which the guideline's foods can meet without distorting the plan.
         $perKg = $days >= 3 ? ($goal === 'maintain' ? 1.4 : 1.6) : ($days >= 1 ? 1.2 : 1.0);
+        if (in_array($in['achievement'] ?? '', ['muscle'], true) || in_array($in['body_goal'] ?? '', ['athletic', 'muscular'], true)) $perKg += 0.2;   // building muscle needs more protein
         $protein = min(160, round($w * $perKg));
 
         return ['bmr' => (int) round($bmr), 'tdee' => (int) round($tdee), 'pal' => round($tdee / max(1, $bmr), 2), 'kcal' => (int) $kcal,
@@ -100,6 +102,14 @@ class DietEngine
         return Food::where('active', true)->whereIn('diet', $diets)->get()
             ->filter(fn ($f) => ! array_intersect($f->allergenList(), $allergies) && ! in_array($f->id, $dislikes, true) && ! array_intersect($f->tagList(), $tags))
             ->each(fn ($f) => $f->setAttribute('liked', in_array($f->id, $likes, true)))
+            ->each(function ($f) use ($in) {                    // foods the person says they usually eat at breakfast, lunch or dinner
+                $types = [];
+                foreach (['breakfast' => 'breakfast', 'lunch' => 'main', 'dinner' => 'main'] as $slot => $type) {
+                    if (in_array($f->id, array_map('intval', (array) ($in['usuals'][$slot] ?? [])), true)) $types[] = $type;
+                }
+                $f->setAttribute('usual_types', array_values(array_unique($types)));
+                if ($types) $f->setAttribute('liked', true);       // usual foods are kept when the plan is balanced to the calorie target
+            })
             ->values();
     }
 
@@ -245,6 +255,7 @@ class DietEngine
         foreach ($c as $f) {
             $w = 1.0;
             if ($f->getAttribute('liked')) $w *= 4;
+            if (in_array($type, (array) $f->getAttribute('usual_types'), true)) $w *= 2;
             if ($f->whole_grain) $w *= 1.7;
             if ($f->limited) $w *= .2;
             $w *= $subW[$f->sub] ?? 1;
@@ -255,7 +266,7 @@ class DietEngine
         return $best;
     }
 
-    private static function item(Food $f, int $servings): array
+    public static function item(Food $f, int $servings): array
     {
         return ['food_id' => $f->id, 'name' => $f->name, 'local' => $f->local_name, 'grp' => $f->grp, 'sub' => $f->sub, 'servings' => $servings,
             'qty' => $f->qty($servings), 'kcal' => $f->kcalFor($servings), 'protein' => $f->proteinFor($servings),
@@ -439,6 +450,16 @@ class DietEngine
         $food = self::eligible($in)->firstWhere('id', $foodId);
         abort_unless($food && $food->grp === $item['grp'], 404);
         $plan['days'][$di]['meals'][$mi]['items'][$ii] = self::item($food, $item['servings']);
+        $plan['days'][$di]['meals'][$mi]['edited'] = true;
+        return self::finish($plan);
+    }
+
+    /** Eat more or less of one food: the same food, a different number of servings (1 to 8). */
+    public static function resizeItem(array $plan, int $di, int $mi, int $ii, int $servings): array
+    {
+        $it = $plan['days'][$di]['meals'][$mi]['items'][$ii] ?? abort(404);
+        $food = Food::find($it['food_id']) ?? abort(404);
+        $plan['days'][$di]['meals'][$mi]['items'][$ii] = self::item($food, max(1, min(8, $servings)));
         $plan['days'][$di]['meals'][$mi]['edited'] = true;
         return self::finish($plan);
     }

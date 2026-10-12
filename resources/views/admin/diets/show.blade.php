@@ -7,7 +7,7 @@
 @if ($diet->source === 'owner')
   <div class="card"><pre class="plain">{{ $diet->owner_text }}</pre></div>
 @else
-  @if ($diet->inputs)<div class="card mb small"><strong>Answers given:</strong> goal {{ $diet->inputs['goal'] }}, age {{ $diet->inputs['age'] }}, {{ $diet->inputs['sex'] }}, {{ $diet->inputs['height'] }} cm, {{ $diet->inputs['weight'] }} kg, activity {{ $diet->inputs['activity'] }}, {{ str_replace('_', '-', $diet->inputs['diet_type']) }}, allergies: {{ implode(', ', $diet->inputs['allergies'] ?: ['none']) }}, {{ $diet->inputs['meals'] }} meals, budget {{ rs($diet->inputs['budget']) }}/day</div>@endif
-  @include('partials.diet_plan', ['plan' => $diet->plan, 'day' => max(1, min(7, (int) request('day', 1))), 'swappable' => false, 'tabsUrl' => fn ($i) => route('admin.diets.show', [$diet, 'day' => $i]), 'priceDate' => \App\Models\Food::min('price_updated_on')])
+  @if ($diet->inputs)@php $in = $diet->inputs; @endphp<div class="card mb small"><strong>Survey answers:</strong> {{ $in['sex'] ?? '' }}, {{ $in['age'] ?? '' }} years, {{ $in['height'] ?? '' }} cm, {{ $in['weight'] ?? '' }} kg · wants to {{ strtolower(\App\Http\Controllers\Member\DietController::ACHIEVEMENTS[$in['achievement'] ?? ''] ?? ($in['goal'] ?? '')) }} · body now {{ $in['current_body'] ?? '-' }}, goal {{ $in['body_goal'] ?? '-' }} · metabolism {{ $in['metabolism'] ?? '-' }} · {{ $in['train_days'] ?? '-' }} workouts a week · {{ $in['meals'] ?? '-' }} meals · {{ \App\Services\DietEngine::PATTERNS[$in['pattern'] ?? 'everything'] ?? '' }}@if (! empty($in['allergies'])) · allergies: {{ implode(', ', $in['allergies']) }}@endif</div>@endif
+  @include('partials.diet_plan', ['plan' => $diet->plan, 'day' => max(1, min(7, (int) request('day', 1))), 'swappable' => false, 'tabsUrl' => fn ($i) => route('admin.diets.show', [$diet, 'day' => $i]), 'alts' => []])
 @endif
 @endsection

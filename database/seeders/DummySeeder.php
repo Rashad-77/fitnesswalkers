@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\{Announcement, Attendance, BodyLog, Enquiry, DietPlan, Equipment, Exercise, Expense, Food, Goal, Member, Membership, Payment, Plan, PlanRequest, RenewalRequest, Setting, User, WorkoutLog, WorkoutPlan, WorkoutPlanItem, WorkoutTemplate, WorkoutTemplateItem};
 use App\Services\Bmi;
-use App\Services\DietGenerator;
+use App\Services\DietEngine;
 use Illuminate\Database\Seeder;
 
 /**
@@ -215,9 +215,13 @@ class DummySeeder extends Seeder
 
         // Member 2: pending plan request. Member 3: app diet plan.
         PlanRequest::create(['member_id' => $members[1]->id, 'goal' => 'fat_loss', 'level' => 'beginner', 'days_per_week' => 4, 'notes' => 'Sample request'] + $this->d);
-        $in = ['goal' => 'lose', 'age' => 24, 'sex' => 'male', 'height' => 180, 'weight' => 82, 'activity' => 'moderate', 'diet_type' => 'non_veg', 'allergies' => [], 'meals' => 4, 'budget' => 1200];
-        $gen = DietGenerator::generate($in);
-        DietPlan::create(['member_id' => $members[2]->id, 'source' => 'app', 'title' => 'App-generated plan', 'inputs' => $in, 'plan' => $gen] + $this->d);
+        $in = ['sex' => 'male', 'age' => 24, 'height' => 180, 'weight' => 82, 'achievement' => 'lose', 'goal' => 'lose', 'pace' => 'gentle', 'current_body' => 'soft', 'body_goal' => 'athletic',
+            'metabolism' => 'average', 'best_shape' => 'few_years', 'causes' => ['sleep'], 'job' => 'sitting', 'train_days' => 3, 'train_minutes' => 45, 'meals' => 4, 'pattern' => 'everything',
+            'allergies' => [], 'no_beef' => false, 'no_pork' => false, 'pregnant' => false, 'medical' => false, 'eating_disorder' => false, 'usuals' => ['breakfast' => [], 'lunch' => [], 'dinner' => []]];
+        $gen = DietEngine::generate($in) + ['water' => ['litres' => 3.0, 'glasses' => 12], 'tips' => ['Have a glass of water before each meal, and keep a bottle with you while you train.'],
+            'schedule' => array_map(fn ($w) => $w ? ['workout' => true, 'plan_day' => 1, 'focus' => 'Legs and Chest'] : ['workout' => false], [1, 0, 1, 0, 1, 0, 0]),
+            'workout' => ['name' => 'Beginner Full Body (3 days)', 'days' => 3, 'minutes' => 45]];
+        DietPlan::create(['member_id' => $members[0]->id, 'source' => 'app', 'title' => 'My meal plan', 'inputs' => $in, 'plan' => $gen] + $this->d);
         DietPlan::create(['member_id' => $members[4]->id, 'source' => 'owner', 'title' => 'Owner plan (sample)', 'owner_text' => "Breakfast: 3 eggs + 2 slices bread\nLunch: rice, dhal, vegetables, fish\nDinner: roti, chicken, salad\nSample text written by the owner."] + $this->d);
         RenewalRequest::create(['member_id' => $members[3]->id, 'plan_id' => Plan::first()->id] + $this->d);
 

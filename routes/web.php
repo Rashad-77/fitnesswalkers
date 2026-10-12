@@ -59,8 +59,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('exercises', Admin\ExerciseController::class)->except('show');
     Route::resource('equipment', Admin\EquipmentController::class)->only(['index', 'store', 'update', 'destroy']);
 
-    Route::post('foods/import', [Admin\FoodController::class, 'import'])->name('foods.import');
-    Route::post('foods/feed', [Admin\FoodController::class, 'feed'])->name('foods.feed');
     Route::resource('foods', Admin\FoodController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('diets', Admin\DietController::class)->only(['index', 'show', 'create', 'store', 'destroy']);
 
@@ -100,7 +98,10 @@ Route::middleware(['auth', 'role:member'])->prefix('app')->name('member.')->grou
     Route::post('progress/goal/{goal}/toggle', [Member\ProgressController::class, 'toggleGoal'])->name('progress.goal.toggle');
 
     Route::get('diet', [Member\DietController::class, 'index'])->name('diet');
+    Route::get('diet/create', [Member\DietController::class, 'create'])->name('diet.create');
+    Route::post('diet/preview', [Member\DietController::class, 'preview'])->name('diet.preview');
     Route::post('diet', [Member\DietController::class, 'generate'])->name('diet.generate');
+    Route::post('diet/item', [Member\DietController::class, 'item'])->name('diet.item');
     Route::get('diet/shopping', [Member\DietController::class, 'shopping'])->name('diet.shopping');
     Route::post('diet/swap', [Member\DietController::class, 'swap'])->name('diet.swap');
 });

@@ -13,7 +13,7 @@
     <p class="small mt"><a href="{{ route('admin.settings') }}">Go to Gym profile</a></p></div>
   <div class="card mb"><h2>Remaining setup tasks</h2><ul class="small">
     <li>Record real exercise clips (the exercises have no video yet).</li>
-    <li>Check every food price and nutrition value.</li>
+    <li>Check the food list in Library > Foods and switch off anything members cannot buy.</li>
     <li>Swap the logo file for a clean image (<code>public/img/logo-banner.png</code>).</li>
     <li>Replace sample package prices and lengths.</li></ul></div>
   <div class="card"><h2>Remove ALL sample data</h2>

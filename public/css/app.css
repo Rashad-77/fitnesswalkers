@@ -499,3 +499,26 @@ input[type=checkbox],input[type=radio]{accent-color:var(--fern)}
   .marquee .track{animation:none}
 }
 .show-sm{display:none} @media(max-width:860px){.show-sm{display:block}}
+
+/* ================= meal plan v2 ================= */
+.opts2{grid-template-columns:1fr 1fr} @media(max-width:420px){.opts2{grid-template-columns:1fr}}
+.wnote{display:flex;flex-direction:column;gap:.15rem;padding:.8rem 1rem;border-radius:14px;background:var(--lime-l);border:1px solid #d8ecaa;color:#2e4d0c;font-size:.9rem} .wnote b{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--fern-d)}
+.lockcard{text-align:center;padding:1.6rem 1.2rem} .lockcard h2{justify-content:center;font-size:1.3rem}
+.lockcard .steps{text-align:left;display:inline-block;margin:.4rem 0 1rem}
+.lockic{width:56px;height:56px;border-radius:18px;background:var(--lime-l);color:var(--fern);display:grid;place-items:center;margin:0 auto .8rem} .lockic .ico{width:1.7rem;height:1.7rem}
+.ticks2{list-style:none;margin:.6rem 0 1.1rem;padding:0;display:grid;gap:.35rem;color:var(--mut);font-size:.92rem}
+.daytabs a{position:relative;display:inline-flex;align-items:center;gap:.35rem}
+.wdot{width:7px;height:7px;border-radius:50%;background:var(--fern);display:inline-block} .daytabs a.on .wdot{background:var(--lime)}
+.kbar>i{transition:width .5s var(--ease)} .kbar.over>i{background:linear-gradient(90deg,var(--amber),#e8b13a)} .kbar.under>i{background:linear-gradient(90deg,#7d8f84,#a5b5aa)}
+.meal .h .kc{color:var(--fern);font-weight:700}
+.course{margin-top:.7rem} .course .ch{font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--fern);margin-bottom:.1rem}
+.course.water{padding:.6rem .75rem;border-radius:12px;background:#eef6fb;color:#1f4f86} .course.water .ch{color:#2b6cb0}
+.meal .list li{display:flex;justify-content:space-between;gap:.6rem;align-items:center;padding:.4rem 0}
+.meal .list .it b{color:var(--ink)}
+.chg{margin-left:.5rem;background:none;border:1px solid var(--line);border-radius:99px;padding:.15rem .6rem;font:inherit;font-size:.78rem;font-weight:700;color:var(--fern);cursor:pointer} .chg:hover{background:var(--lime-l);border-color:#cfe0b6}
+.meal .list li{flex-wrap:wrap} .chgform{flex-basis:100%;flex-wrap:wrap} .chghint{flex-basis:100%;margin:.2rem 0 0}
+.shoprow{display:flex;gap:.7rem;align-items:center;margin:0;font-weight:500;cursor:pointer} .shoprow input{width:1.2rem;height:1.2rem}
+.shoprow input:checked+span{text-decoration:line-through;color:var(--mut)}
+.chglab{flex-basis:100%;margin:.4rem 0 0;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chgform select{min-width:0;flex:1 1 55%}
+.meal .list .it{flex:1 1 55%;min-width:0}

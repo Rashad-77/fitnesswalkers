@@ -22,7 +22,7 @@ class SystemController extends Controller
     public function exportPage()
     {
         return view('admin.export', ['types' => [
-            'members' => 'Members', 'memberships' => 'Memberships', 'payments' => 'Payments', 'expenses' => 'Expenses', 'foods' => 'Foods and prices',
+            'members' => 'Members', 'memberships' => 'Memberships', 'payments' => 'Payments', 'expenses' => 'Expenses', 'foods' => 'Foods',
         ]]);
     }
 
@@ -36,8 +36,8 @@ class SystemController extends Controller
             'payments' => [['Receipt', 'Date', 'Member no', 'Name', 'Amount', 'Method', 'Plan', 'Note'],
                 Payment::with(['member.user', 'membership.plan'])->orderBy('paid_on')->get()->map(fn ($p) => [$p->receipt_no, $p->paid_on->toDateString(), $p->member->member_no, $p->member->user->name, $p->amount, $p->method, $p->membership?->plan?->name, $p->note])],
             'expenses' => [['Date', 'Category', 'Amount', 'Description'], Expense::orderBy('spent_on')->get()->map(fn ($e) => [$e->spent_on->toDateString(), $e->category, $e->amount, $e->description])],
-            'foods' => [['Name', 'Category', 'Diet type', 'Allergens', 'kcal/100g', 'Protein/100g', 'Carbs/100g', 'Fat/100g', 'Rs per kg', 'Price updated'],
-                Food::orderBy('name')->get()->map(fn ($f) => [$f->name, $f->category, $f->diet_type, $f->allergens, $f->kcal_100g, $f->protein_100g, $f->carbs_100g, $f->fat_100g, $f->price_per_kg, $f->price_updated_on?->toDateString()])],
+            'foods' => [['Name', 'Local name', 'Group', 'Serving', 'Grams', 'Calories', 'Protein g', 'Suits', 'Allergens', 'On'],
+                Food::orderBy('grp')->orderBy('name')->get()->map(fn ($f) => [$f->name, $f->local_name, $f->grp, $f->qty(1), $f->serving_g, $f->kcal_serving, $f->protein_serving, $f->diet, $f->allergens, $f->active ? 'yes' : 'no'])],
             default => abort(404),
         };
         AuditLog::record('Exported data', $type);
@@ -96,7 +96,7 @@ class SystemController extends Controller
             'users' => 'Logins (owner + sample members)', 'members' => 'Members', 'memberships' => 'Memberships', 'payments' => 'Payments', 'plans' => 'Membership plans',
             'expenses' => 'Expenses', 'announcements' => 'Announcements', 'equipment' => 'Equipment', 'exercises' => 'Exercises (clips are placeholders)',
             'workout_templates' => 'Workout templates', 'workout_plans' => 'Member workout plans', 'plan_requests' => 'Plan requests', 'workout_logs' => 'Workout logs',
-            'body_logs' => 'Body measurements', 'goals' => 'Goals', 'foods' => 'Foods and prices', 'diet_plans' => 'Meal plans', 'renewal_requests' => 'Renewal requests', 'settings' => 'Settings (address, phone...)',
+            'body_logs' => 'Body measurements', 'goals' => 'Goals', 'foods' => 'Foods', 'diet_plans' => 'Meal plans', 'renewal_requests' => 'Renewal requests', 'settings' => 'Settings (address, phone...)',
         ];
         return view('admin.placeholders', [
             'counts' => Dummy::counts(), 'labels' => $labels,
