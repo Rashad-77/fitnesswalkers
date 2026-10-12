@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\{Attendance, Enquiry, Member, Reminder, Setting, User};
+use App\Models\{Attendance, Enquiry, Member, Setting, User};
 use Database\Seeders\DummySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-/** Check-in, enquiries, joining form, reminders, and the new menus. */
+/** Check-in, enquiries, joining form, renewals, and the new menus. */
 class UpgradesTest extends TestCase
 {
     use RefreshDatabase;
@@ -149,16 +149,11 @@ class UpgradesTest extends TestCase
         $this->get(route('admin.members.show', [$b, 'tab' => 'workout']))->assertOk()->assertSee('health form has');
     }
 
-    public function test_reminders_page_lists_groups_and_sent_tick_is_saved(): void
+    public function test_renewals_page_lists_requests_and_ending_memberships_without_whatsapp(): void
     {
         $this->seed(DummySeeder::class);
         $this->actingAs($this->owner())->get(route('admin.renewals'))->assertOk()
-            ->assertSee('Expiring this week')->assertSee('Outstanding balance')->assertSee('Low attendance')->assertSee('wa.me/', false);
-        $m = Member::find(3);
-        $this->post(route('admin.reminders.sent'), ['member_id' => $m->id, 'kind' => 'expiring'])->assertSessionHas('ok');
-        $this->assertNotNull(Reminder::lastSent($m->id, 'expiring'));
-        $this->get(route('admin.renewals'))->assertSee('sent today');
-        $this->post(route('admin.reminders.sent'), ['member_id' => $m->id, 'kind' => 'bogus'])->assertSessionHasErrors('kind');
+            ->assertSee('Expiring this week')->assertSee('Expired in the last 60 days')->assertDontSee('wa.me/', false);
     }
 
     public function test_members_filters_have_counts_and_work(): void
@@ -195,7 +190,7 @@ class UpgradesTest extends TestCase
     {
         $this->seed(DummySeeder::class);
         $html = $this->actingAs($this->owner())->get(route('admin.members.index'))->assertOk()->getContent();
-        foreach (['Today', 'Members', 'Finances', 'Library', 'Settings', 'Reminders', 'Enquiries', 'Workout requests'] as $w) $this->assertStringContainsString($w, $html);
+        foreach (['Today', 'Members', 'Finances', 'Library', 'Settings', 'Renewals', 'Enquiries', 'Workout requests'] as $w) $this->assertStringContainsString($w, $html);
         foreach (['Renewals &amp; overdue', 'Quiet members', 'Change history', 'Placeholders', '>Money<', 'Not training lately'] as $old) $this->assertStringNotContainsString($old, $html);
         $this->get(route('admin.quiet'))->assertRedirect(route('admin.members.index', ['filter' => 'quiet']));
     }

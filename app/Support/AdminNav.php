@@ -21,7 +21,7 @@ class AdminNav
             ]],
             'members' => ['label' => 'Members', 'icon' => 'users', 'route' => 'admin.members.index', 'tabs' => [
                 ['Members', 'admin.members.index', ['admin.members.*']],
-                ['Reminders', 'admin.renewals', ['admin.renewals', 'admin.renewals.*', 'admin.reminders.*'], $c['reminders']],
+                ['Renewals', 'admin.renewals', ['admin.renewals', 'admin.renewals.*'], $c['reminders']],
                 ['Enquiries', 'admin.enquiries.index', ['admin.enquiries.*'], $c['enquiries']],
                 ['Workout requests', 'admin.requests.index', ['admin.requests.*'], $c['requests']],
                 ['Announcements', 'admin.announcements.index', ['admin.announcements.*']],

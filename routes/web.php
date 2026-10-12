@@ -33,7 +33,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('members/{member}/memberships', [Admin\MemberController::class, 'addMembership'])->name('members.memberships.store');
 
     Route::get('renewals', [Admin\ReportController::class, 'renewals'])->name('renewals');
-    Route::post('reminders/sent', [Admin\ReportController::class, 'sent'])->name('reminders.sent');
     Route::post('members/{member}/checkin', [Admin\MemberController::class, 'checkin'])->name('members.checkin');
     Route::post('checkin', [Admin\MemberController::class, 'quickCheckin'])->name('checkin.quick');
     Route::get('checkin-poster', [Admin\CheckinController::class, 'poster'])->name('checkin.poster');

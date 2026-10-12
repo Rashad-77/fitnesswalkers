@@ -10,7 +10,7 @@ No payments happen on the site: the owner records them.
 ## What it does
 
 **Owner (/admin), five sections:** **Today** (items requiring attention, quick check-in, present today, month at a glance) ·
-**Members** (members list with filters, member pages, Reminders with prepared WhatsApp messages, Enquiries, Workout requests, Announcements) ·
+**Members** (members list with filters, member pages, Renewals, Enquiries, Workout requests, Announcements) ·
 **Finances** (payments and printable receipts, expenses, financial reports) ·
 **Library** (exercises, workout templates, equipment, food prices, meal plans) ·
 **Settings** (gym profile, packages, check-in QR, my account, data export, activity log, sample data).
