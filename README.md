@@ -57,6 +57,23 @@ There is no Node/npm build: the CSS and JS are plain files in `public/`.
 7. Sign in, go to **Settings → My account** and replace the sample login, then work through **Settings → Sample data**.
 8. Make sure PHP is 8.3+ (cPanel → Select PHP Version) and that `storage/` and `bootstrap/cache/` are writable (permissions 755/775).
 
+## Putting a demo online on Vercel
+
+Vercel has no PHP of its own, so this uses the community `vercel-php` runtime (`vercel.json`, `api/index.php`).
+**This is a demo setup:** the data is the sample-data file `database/demo.sqlite`, kept in the repo. Visitors can click around and even add things, but
+changes live only in that server's temporary copy and disappear when it restarts, so the sample data always comes back. Also: exercise video **file uploads** are off
+(paste a video link instead) and the weekly food-price update does not run (no cron).
+
+1. **vercel.com:** Add New > Project > import this GitHub repository (pick the branch you want as Production Branch). Framework preset **Other**; leave the build and output settings alone.
+2. **One environment variable** (Project > Settings > Environment Variables): `APP_KEY`, from `php artisan key:generate --show` on your computer. Optionally `APP_URL` (your Vercel address, with https).
+3. Deploy. Sign in at `/login` with the sample logins above.
+
+To refresh the demo data after changing the seeder: `touch database/demo.sqlite && DB_DATABASE=$PWD/database/demo.sqlite php artisan migrate:fresh --seed --force`, then commit the file.
+
+**Going real later:** set `DB_CONNECTION=mysql` and the `DB_*` variables (plus `SESSION_DRIVER=database`, `CACHE_STORE=database`) in Vercel to use an online MySQL database instead
+(for example TiDB Cloud or Aiven; run `php artisan migrate --force --seed` against it once from your computer). Variables you set in Vercel win over the demo defaults.
+For a real gym, register.lk (above) is the better home.
+
 ## Food prices: how "automatic" really is
 
 There is no free, live feed of Sri Lankan food prices (the Census Dept and HARTI publish PDFs/tables, not an API). So prices update three ways:

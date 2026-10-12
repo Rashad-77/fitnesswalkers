@@ -12,6 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Behind Vercel's proxy, trust it so links and cookies use https.
+        if (env('VERCEL')) {
+            $middleware->trustProxies(at: '*');
+        }
         $middleware->alias(['role' => \App\Http\Middleware\EnsureRole::class]);
         $middleware->redirectGuestsTo(fn () => route('login'));
     })
