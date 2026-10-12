@@ -19,7 +19,12 @@ class FoodCatalogue
         $added = 0;
         foreach (self::rows() as $r) {
             if ($have->has(mb_strtolower($r['name']))) continue;
-            Food::create($r + ['active' => true, 'is_dummy' => false]);
+            $extra = [];
+            if (\Illuminate\Support\Facades\Schema::hasColumn('foods', 'carbs_serving')) {          // older migrations run before these columns exist
+                $m = Food::estimateMacros($r['grp'], $r['sub'] ?? null, $r['name'], $r['kcal_serving'], (float) $r['protein_serving']);
+                $extra = ['carbs_serving' => $m['carbs'], 'fat_serving' => $m['fat']];
+            }
+            Food::create($r + $extra + ['active' => true, 'is_dummy' => false]);
             $added++;
         }
         return $added;

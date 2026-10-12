@@ -32,6 +32,7 @@ class AdminNav
                 ['Exercises', 'admin.exercises.index', ['admin.exercises.*'], 'dumbbell'],
                 ['Workout templates', 'admin.templates.index', ['admin.templates.*'], 'layers'],
                 ['Equipment', 'admin.equipment.index', ['admin.equipment.*'], 'box', $c['equipment'] ?: null],
+                ['Dishes', 'admin.dishes.index', ['admin.dishes.*'], 'food'],
                 ['Foods', 'admin.foods.index', ['admin.foods.*'], 'leaf'],
             ]],
             ['label' => 'Money', 'items' => [

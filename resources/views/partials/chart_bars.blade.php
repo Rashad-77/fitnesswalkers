@@ -1,4 +1,5 @@
-{{-- $labels: string[], $series: [ ['name'=>..,'color'=>..,'data'=>float[]], ... ] --}}
+{{-- $labels: string[], $series: [ ['name'=>..,'color'=>..,'data'=>float[]], ... ], $unit (optional): 'rs' (default) or a word such as 'kcal' or 'days' --}}
+@php $unit = $unit ?? 'rs'; $fmtv = fn ($v) => $unit === 'rs' ? rs($v) : number_format($v).' '.$unit; @endphp
 @php
   $max = max(1, collect($series)->flatMap(fn ($s) => $s['data'])->max());
   $n = count($labels); $k = count($series);
@@ -12,9 +13,9 @@
   @foreach ($labels as $i => $lab)
     @foreach ($series as $j => $s)
       @php $h = ($s['data'][$i] / $max) * ($H - 10); @endphp
-      <rect x="{{ $pad + $i * $bw + ($bw - $gw) / 2 + $j * $w1 }}" y="{{ $H - $h }}" width="{{ max(2, $w1 - 2) }}" height="{{ $h }}" rx="3" fill="{{ $s['color'] }}"><title>{{ $s['name'] }} {{ $lab }}: {{ rs($s['data'][$i]) }}</title></rect>
+      <rect x="{{ $pad + $i * $bw + ($bw - $gw) / 2 + $j * $w1 }}" y="{{ $H - $h }}" width="{{ max(2, $w1 - 2) }}" height="{{ $h }}" rx="3" fill="{{ $s['color'] }}"><title>{{ $s['name'] }} {{ $lab }}: {{ $fmtv($s['data'][$i]) }}</title></rect>
     @endforeach
     <text x="{{ $pad + $i * $bw + $bw / 2 }}" y="{{ $H + 14 }}" text-anchor="middle">{{ $lab }}</text>
   @endforeach
 </svg>
-<div class="small muted row">@foreach ($series as $s)<span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:{{ $s['color'] }}"></span> {{ $s['name'] }}</span>@endforeach <span>(max {{ rs($max) }})</span></div>
+<div class="small muted row">@foreach ($series as $s)<span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:{{ $s['color'] }}"></span> {{ $s['name'] }}</span>@endforeach <span>(max {{ $fmtv($max) }})</span></div>

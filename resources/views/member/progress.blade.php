@@ -22,7 +22,7 @@
     @foreach ($body->reverse()->take(15) as $b)<div class="row between small" style="padding:.25rem 0"><span>{{ $b->logged_on->format('d M Y') }}</span><span>{{ $b->weight_kg }} kg{{ $b->waist_cm ? ' · waist '.$b->waist_cm : '' }}{{ $b->chest_cm ? ' · chest '.$b->chest_cm : '' }}{{ $b->arm_cm ? ' · arm '.$b->arm_cm : '' }}</span></div>@endforeach</details>@endif
 </div>
 <div class="card mb"><h2>Consistency (workout days per week)</h2>
-  @include('partials.chart_bars', ['labels' => array_keys($weeks), 'series' => [['name' => 'Days', 'color' => '#7cb82f', 'data' => array_map('floatval', array_values($weeks))]]])</div>
+  @include('partials.chart_bars', ['unit' => 'days', 'labels' => array_keys($weeks), 'series' => [['name' => 'Days', 'color' => '#7cb82f', 'data' => array_map('floatval', array_values($weeks))]]])</div>
 <div class="card mb"><h2>Strength</h2>
   @if ($exercises->count())
     <form method="get" class="f"><select name="exercise" onchange="this.form.submit()">@foreach ($exercises as $e)<option value="{{ $e->id }}" @selected($e->id === $exId)>{{ $e->name }}</option>@endforeach</select></form>

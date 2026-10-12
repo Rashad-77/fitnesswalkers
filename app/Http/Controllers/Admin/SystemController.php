@@ -36,8 +36,8 @@ class SystemController extends Controller
             'payments' => [['Receipt', 'Date', 'Member no', 'Name', 'Amount', 'Method', 'Plan', 'Note'],
                 Payment::with(['member.user', 'membership.plan'])->orderBy('paid_on')->get()->map(fn ($p) => [$p->receipt_no, $p->paid_on->toDateString(), $p->member->member_no, $p->member->user->name, $p->amount, $p->method, $p->membership?->plan?->name, $p->note])],
             'expenses' => [['Date', 'Category', 'Amount', 'Description'], Expense::orderBy('spent_on')->get()->map(fn ($e) => [$e->spent_on->toDateString(), $e->category, $e->amount, $e->description])],
-            'foods' => [['Name', 'Local name', 'Group', 'Serving', 'Grams', 'Calories', 'Protein g', 'Suits', 'Allergens', 'On'],
-                Food::orderBy('grp')->orderBy('name')->get()->map(fn ($f) => [$f->name, $f->local_name, $f->grp, $f->qty(1), $f->serving_g, $f->kcal_serving, $f->protein_serving, $f->diet, $f->allergens, $f->active ? 'yes' : 'no'])],
+            'foods' => [['Name', 'Local name', 'Group', 'Serving', 'Grams', 'Calories', 'Protein g', 'Carbs g', 'Fat g', 'Suits', 'Allergens', 'On'],
+                Food::orderBy('grp')->orderBy('name')->get()->map(fn ($f) => [$f->name, $f->local_name, $f->grp, $f->qty(1), $f->serving_g, $f->kcal_serving, $f->protein_serving, $f->carbs_serving, $f->fat_serving, $f->diet, $f->allergens, $f->active ? 'yes' : 'no'])],
             default => abort(404),
         };
         AuditLog::record('Exported data', $type);

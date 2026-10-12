@@ -89,6 +89,12 @@ class DashboardController extends Controller
         foreach (Equipment::where('out_of_order', true)->get() as $q) {
             $t->push(['score' => 40, 'kind' => 'equipment', 'icon' => 'wrench', 'title' => $q->name.' is out of order', 'sub' => 'Members cannot be given exercises that need it', 'url' => route('admin.equipment.index'), 'cta' => 'Open']);
         }
+        foreach (\App\Models\DietPlan::with('member.user')->where('active', true)->where('source', 'app')->get() as $dp) {
+            foreach (\App\Services\DietCheckins::flags($dp->member) as $f) {
+                $t->push(['score' => in_array($f['kind'], ['fast', 'energy'], true) ? 70 : ($f['kind'] === 'overdue' ? 44 : 60), 'kind' => 'meal', 'icon' => 'clipboard', 'title' => $dp->member->user->name.': '.$f['text'],
+                    'sub' => 'Meal plan check-in', 'url' => route('admin.diets.show', $dp), 'cta' => 'Review']);
+            }
+        }
         return $t->sortByDesc('score')->values();
     }
 }

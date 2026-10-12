@@ -82,8 +82,35 @@ class DietEngine
         if (in_array($in['achievement'] ?? '', ['muscle'], true) || in_array($in['body_goal'] ?? '', ['athletic', 'muscular'], true)) $perKg += 0.2;   // building muscle needs more protein
         $protein = min(160, round($w * $perKg));
 
+        // Overrides: the member can adjust within safe limits, and the owner can set their own targets (see targetLimits).
+        $ov = $in['override'] ?? null;
+        if (is_array($ov)) {
+            if (isset($ov['kcal'])) $kcal = max($floor, (int) round((float) $ov['kcal']));
+            if (isset($ov['protein'])) $protein = (int) round((float) $ov['protein']);
+        }
+        // Fat is about 27% of calories (20 to 35% is healthy), carbs are what is left.
+        $fatPct = is_array($ov) && isset($ov['fat_pct']) ? max(15, min(45, (float) $ov['fat_pct'])) : 27.0;
+        $fat = (int) round($kcal * $fatPct / 100 / 9);
+        $carbs = (int) round(($kcal - 4 * $protein - 9 * $fat) / 4);
+        if ($carbs < 100) { $carbs = 100; $fat = max(0, (int) round(($kcal - 4 * $protein - 400) / 9)); }   // never plan under 100 g of carbs
+
         return ['bmr' => (int) round($bmr), 'tdee' => (int) round($tdee), 'pal' => round($tdee / max(1, $bmr), 2), 'kcal' => (int) $kcal,
-            'protein' => (int) $protein, 'per_kg' => $perKg, 'floor_applied' => $kcal === $floor && ($tdee + $adjust) < $floor];
+            'protein' => (int) $protein, 'carbs' => $carbs, 'fat' => $fat, 'fat_pct' => round($fat * 9 / max(1, $kcal) * 100),
+            'per_kg' => $perKg, 'floor_applied' => $kcal === $floor && ($tdee + $adjust) < $floor, 'floor' => $floor, 'overridden' => is_array($ov)];
+    }
+
+    /**
+     * How far a person can move their own targets. Members get a safe band; the owner gets a wider one ($owner = true).
+     * @return array{kcal: array{0:int,1:int}, protein: array{0:int,1:int}, fat_pct: array{0:int,1:int}, carbs_min: int, base: array}
+     */
+    public static function targetLimits(array $in, bool $owner = false): array
+    {
+        $base = self::targets(array_diff_key($in, ['override' => 1]));                      // what the survey alone would give
+        $w = (float) $in['weight']; $floor = $base['floor'];
+        $lo = $owner ? $floor : max($floor, (int) (round($base['tdee'] * 0.75 / 10) * 10));
+        $hi = (int) (round(($owner ? $base['tdee'] * 1.5 : max($base['tdee'] * 1.2, $base['tdee'] + 500)) / 10) * 10);
+        return ['kcal' => [$lo, $hi], 'protein' => [(int) round($w * ($owner ? 0.6 : 0.8)), (int) min($owner ? 220 : 200, round($w * ($owner ? 2.6 : 2.2)))],
+            'fat_pct' => $owner ? [15, 45] : [20, 35], 'carbs_min' => 100, 'base' => $base];
     }
 
     /* ============================================================== 3 + 4. servings per group */

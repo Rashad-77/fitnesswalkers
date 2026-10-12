@@ -9,7 +9,7 @@ class Food extends Model
 {
     protected $table = 'foods';
     protected $guarded = [];
-    protected $casts = ['active' => 'boolean', 'whole_grain' => 'boolean', 'limited' => 'boolean', 'is_dummy' => 'boolean', 'per_serving' => 'float'];
+    protected $casts = ['carbs_serving' => 'float', 'fat_serving' => 'float', 'active' => 'boolean', 'whole_grain' => 'boolean', 'limited' => 'boolean', 'is_dummy' => 'boolean', 'per_serving' => 'float'];
 
     public const ALLERGENS = ['egg', 'dairy', 'fish', 'shellfish', 'nuts', 'gluten', 'soy', 'sesame'];
     public const DIETS = ['vegan' => 'Plant only', 'dairy' => 'Contains milk', 'egg' => 'Contains egg', 'meat' => 'Fish, chicken or meat'];
@@ -44,4 +44,28 @@ class Food extends Model
         $num = $whole > 0 ? $whole.($sym ? ' '.$sym : '') : ($sym ?: '0');
         return $num.' '.($total > 1 ? ($plural ?: $unit) : $unit);
     }
+
+    /**
+     * Carbs and fat for one serving, estimated from its calories and protein. Calories = 4 x protein + 4 x carbs + 9 x fat, so
+     * what protein does not explain is split between carbs and fat using what is typical for that kind of food.
+     * These are ESTIMATES. Replace them with a Sri Lankan food composition table when one can be licensed.
+     */
+    public static function estimateMacros(string $grp, ?string $sub, string $name, int|float $kcal, float $protein): array
+    {
+        $rest = max(0.0, $kcal - 4 * $protein);                       // calories that are not protein
+        $fatShare = match ($grp) {                                    // the part of those calories that comes from fat
+            'oil' => 1.0, 'coconut' => 0.92, 'nuts' => 0.8, 'egg' => 0.95, 'veg' => 0.05, 'fruit' => 0.03, 'pulse' => 0.1,
+            'protein' => match ($sub) { 'shellfish' => 0.7, 'fish', 'poultry', 'red', 'dried' => 1.0, default => 1.0 },
+            'dairy' => str_contains($name, 'Cheese') ? 0.95 : (str_contains($name, 'Yoghurt') ? 0.33 : 0.42),
+            'cereal' => match ($sub) { 'prepared' => 0.12, default => 0.04 },
+            default => 0.1,
+        };
+        foreach (['Avocado' => 0.85, 'Soya' => 0.45, 'Chickpea' => 0.17, 'Kadala' => 0.17, 'Cashew' => 0.7, 'Pumpkin seeds' => 0.75, 'Oats' => 0.12, 'Dosai' => 0.1, 'Roti' => 0.15, 'Bread' => 0.05] as $needle => $share) {
+            if (str_contains($name, $needle)) { $fatShare = $share; break; }
+        }
+        return ['fat' => round($rest * $fatShare / 9, 1), 'carbs' => round($rest * (1 - $fatShare) / 4, 1)];
+    }
+
+    public function carbsFor(int|float $servings): float { return round($this->carbs_serving * $servings, 1); }
+    public function fatFor(int|float $servings): float { return round($this->fat_serving * $servings, 1); }
 }

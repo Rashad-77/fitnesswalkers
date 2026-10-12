@@ -3,23 +3,23 @@
 @section('content')
 <div class="row between mb"><div><h1>Foods</h1><p class="muted" style="margin:0">The Sri Lankan food list behind members' meal plans. Switch off anything members cannot buy, or add a local food.</p></div>
   <a class="btn" href="#form">+ Add a food</a></div>
-<div class="alert info">Calories and protein are <b>about</b> values for one household serving. Change any that you know better. Foods that are switched off are never put into new plans.@if ($off) <b>{{ $off }}</b> {{ $off === 1 ? 'food is' : 'foods are' }} off now.@endif</div>
+<div class="alert info">Calories, protein, carbs and fat are <b>about</b> values for one household serving. Change any that you know better. Foods that are switched off are never put into new plans.@if ($off) <b>{{ $off }}</b> {{ $off === 1 ? 'food is' : 'foods are' }} off now.@endif</div>
 
 <form class="filters" method="get"><input type="search" name="q" value="{{ $q }}" placeholder="Search foods">
   <select name="group"><option value="">All food groups</option>@foreach ($groups as $k => $v)<option value="{{ $k }}" @selected($group === $k)>{{ $v }} ({{ $counts[$k] ?? 0 }})</option>@endforeach</select><button class="btn dark">Filter</button></form>
 
 <div class="card mb"><div class="tw"><table>
-  <tr><th>Food</th><th>Group</th><th>One serving</th><th class="right">kcal</th><th class="right">Protein</th><th>Notes</th><th class="center">On</th><th></th></tr>
+  <tr><th>Food</th><th>Group</th><th>One serving</th><th class="right">kcal</th><th class="right">Protein</th><th class="right">Carbs</th><th class="right">Fat</th><th>Notes</th><th class="center">On</th><th></th></tr>
   @forelse ($foods as $f)
     <tr class="{{ $f->active ? '' : 'foodoff' }}"><td><b>{{ $f->name }}</b>{!! dummy_tag($f) !!}@if ($f->local_name)<div class="small muted">{{ $f->local_name }}</div>@endif</td>
       <td class="small">{{ \App\Models\Food::SHORT[$f->grp] ?? $f->grp }}@if ($f->sub)<div class="muted">{{ $f->sub }}</div>@endif</td>
       <td class="small nowrap">{{ $f->qty(1) }}@if ($f->serving_g) <span class="muted">({{ rtrim(rtrim(number_format($f->serving_g, 1), '0'), '.') }} g)</span>@endif</td>
-      <td class="right">{{ $f->kcal_serving }}</td><td class="right">{{ $f->protein_serving }} g</td>
+      <td class="right">{{ $f->kcal_serving }}</td><td class="right">{{ $f->protein_serving }} g</td><td class="right">{{ $f->carbs_serving }} g</td><td class="right">{{ $f->fat_serving }} g</td>
       <td class="small muted">{{ \App\Models\Food::DIETS[$f->diet] ?? $f->diet }}@if ($f->allergenList()) · {{ implode(', ', $f->allergenList()) }}@endif · {{ implode(', ', $f->mealTagList()) }}</td>
       <td class="center"><form method="post" action="{{ route('admin.foods.update', $f) }}">@csrf @method('PUT')<input type="hidden" name="toggle" value="1"><button class="switch {{ $f->active ? 'on' : '' }}" title="{{ $f->active ? 'Switch off' : 'Switch on' }}" aria-label="{{ $f->active ? 'Switch off' : 'Switch on' }} {{ $f->name }}"><i></i></button></form></td>
       <td class="right nowrap"><a class="btn ghost sm" href="{{ route('admin.foods.index', ['edit' => $f->id]) }}#form">Edit</a>
         <form class="inline" method="post" action="{{ route('admin.foods.destroy', $f) }}">@csrf @method('DELETE')<button class="btn ghost sm" data-confirm="Delete {{ $f->name }}?">Delete</button></form></td></tr>
-  @empty <tr><td colspan="8" class="empty">No foods match.</td></tr> @endforelse
+  @empty <tr><td colspan="10" class="empty">No foods match.</td></tr> @endforelse
 </table></div></div>
 
 <div class="card" id="form"><h2>{{ $edit ? 'Edit '.$edit->name : 'Add a food' }}</h2>
@@ -36,6 +36,8 @@
       <div class="f"><label>Grams per serving</label><input type="number" step="0.1" name="serving_g" value="{{ old('serving_g', $f->serving_g ?? '') }}"></div>
       <div class="f"><label>Calories per serving</label><input type="number" name="kcal_serving" value="{{ old('kcal_serving', $f->kcal_serving ?? '') }}" required></div>
       <div class="f"><label>Protein g per serving</label><input type="number" step="0.1" name="protein_serving" value="{{ old('protein_serving', $f->protein_serving ?? '') }}" required></div>
+      <div class="f"><label>Carbs g per serving</label><input type="number" step="0.1" name="carbs_serving" value="{{ old('carbs_serving', $f->carbs_serving ?? '') }}" placeholder="blank = estimate"></div>
+      <div class="f"><label>Fat g per serving</label><input type="number" step="0.1" name="fat_serving" value="{{ old('fat_serving', $f->fat_serving ?? '') }}" placeholder="blank = estimate"></div>
       <div class="f"><label>Suits</label><select name="diet">@foreach ($diets as $k => $v)<option value="{{ $k }}" @selected(old('diet', $f->diet ?? 'vegan') === $k)>{{ $v }}</option>@endforeach</select></div>
       <div class="f"><label>Note (optional)</label><input type="text" name="note" value="{{ old('note', $f->note ?? '') }}"></div>
     </div>

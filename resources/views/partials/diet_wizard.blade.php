@@ -1,9 +1,8 @@
 {{-- The meal-plan survey: one question to a screen. The system asks, the system builds the plan around the member's workout plan.
-     $action, $previewUrl, $form (array|null), $defaults, $allergens, $achievements, $causes, $usuals, $workout --}}
+     $action, $previewUrl, $form (array|null), $defaults, $allergens, $achievements, $causes, $workout --}}
 @php
   $f = fn ($k, $d = null) => old($k, $form[$k] ?? $d);
   $fl = fn ($k) => (array) old($k, $form[$k] ?? []);
-  $usualSel = fn ($slot) => array_map('intval', (array) old('usual_'.$slot, $form['usuals'][$slot] ?? []));
   $achieveDesc = ['lose' => 'Lose body fat while keeping muscle', 'tone' => 'Slowly lose fat and build a firmer look', 'muscle' => 'Gain muscle slowly while you train', 'gain' => 'Gain healthy weight', 'maintain' => 'Eat what your body burns'];
   $bodies = ['lean' => ['Lean', 'Slim build, little body fat'], 'average' => ['Average', 'Neither slim nor heavy'], 'soft' => ['Soft', 'Some extra body fat'], 'heavy' => ['Heavy', 'A lot of extra weight']];
   $bodyGoals = ['lean' => ['Lean and slim', 'Light and slim'], 'toned' => ['Toned', 'Firm, with visible shape'], 'athletic' => ['Athletic', 'Strong and fit'], 'muscular' => ['Big and muscular', 'Maximum muscle'], 'healthy' => ['A healthy weight', 'Feel good and healthy']];
@@ -109,14 +108,6 @@
       @foreach ($allergens as $a)<label class="tg"><input type="checkbox" name="allergies[]" value="{{ $a }}" @checked(in_array($a, $fl('allergies')))><span>{{ $allergyLabels[$a] ?? $a }}</span></label>@endforeach
     </div>
   </section>
-
-  @foreach (['breakfast' => ['What do you usually have for breakfast?', 'Tap the foods you normally eat. We will keep them in your plan.'], 'lunch' => ['What do you usually have for lunch?', 'Tap what you normally eat at lunch.'], 'dinner' => ['What do you usually have for dinner?', 'Tap what you normally eat at dinner.']] as $slot => [$q, $help])
-  <section class="wstep" data-step="usual-{{ $slot }}"><div class="wh"><div><h2>{{ $q }}</h2><p>{{ $help }} Skip it if nothing fits.</p></div></div>
-    <div class="tgs">
-      @foreach ($usuals[$slot] as $food)<label class="tg"><input type="checkbox" name="usual_{{ $slot }}[]" value="{{ $food->id }}" @checked(in_array($food->id, $usualSel($slot)))><span>{{ $food->name }}</span></label>@endforeach
-    </div>
-  </section>
-  @endforeach
 
   <section class="wstep" data-step="health"><div class="wh"><div><h2>Three health questions</h2><p>Please answer truthfully. If any answer is Yes, we will not build a plan, because you need advice from a doctor or dietitian.</p></div></div>
     @foreach ($health as $k => $q)

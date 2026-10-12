@@ -642,3 +642,29 @@ input[type=checkbox],input[type=radio]{accent-color:var(--fern)}
 .livebox i{flex:none;width:34px;height:34px;border-radius:50%;background:var(--lime-l);color:var(--fern);display:grid;place-items:center;font-style:normal;font-weight:800;font-size:.8rem}
 .livebox span{flex:1;min-width:0;display:flex;flex-direction:column} .livebox small{color:var(--mut)} .livebox em{font-style:normal}
 .livebox .none{padding:.8rem;color:var(--mut);font-size:.9rem}
+
+/* ================= meal plan v3: targets, day fit, dishes ================= */
+.tgt .stat .n{font-size:1.5rem}
+.verdict{display:inline-block;padding:.25rem .8rem;border-radius:99px;font-weight:800;font-size:.85rem} .verdict.ok{background:var(--lime-l);color:#2e5a0b} .verdict.near{background:var(--amber-l);color:#8a5a06} .verdict.off{background:var(--red-l);color:#9c2a24}
+.fitgrid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem 1.2rem} @media(max-width:520px){.fitgrid{grid-template-columns:1fr}}
+.fitrow .fl{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.2rem} .fitrow .fl span{color:var(--mut);font-weight:700} .fitrow .fl small{color:var(--mut);font-weight:500}
+.fbar{position:relative;height:9px;border-radius:99px;background:#e3eadc;overflow:visible} .fbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--lime-d),var(--lime));transition:width .5s var(--ease)}
+.fbar u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);border-radius:2px;opacity:.35;text-decoration:none}
+.fitrow.low .fbar i{background:linear-gradient(90deg,#7d8f84,#a5b5aa)} .fitrow.high .fbar i{background:linear-gradient(90deg,var(--amber),#e8b13a)} .fitrow.low .fl b,.fitrow.high .fl b{color:#8a5a06}
+.dname{margin:.2rem 0 .4rem;font-size:1.05rem} .chips2{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.4rem}
+.howto{margin-top:.6rem} .howto summary{cursor:pointer;color:var(--fern);font-weight:700}
+.mactions{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-top:.8rem;padding-top:.7rem;border-top:1px solid #eef2e9}
+.portion{display:inline-flex;align-items:center;gap:.5rem;font-size:.85rem} .portion .chg{margin:0;min-width:2rem;text-align:center} .portion .chg:disabled{opacity:.4;cursor:not-allowed}
+.dpanel{margin-top:.7rem;padding:.9rem;border-radius:14px;background:#f4f8ee;border:1px solid #dfe9d3;display:grid;gap:.35rem}
+.dpanel select{width:100%}
+.dfit{margin:.4rem 0 .5rem;font-size:.9rem} .dchips{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.45rem}
+.dc{padding:.15rem .6rem;border-radius:99px;font-size:.76rem;background:#fff;border:1px solid var(--line)} .dc.ok{border-color:#cfe6a8;background:var(--lime-l);color:#2e5a0b} .dc.low,.dc.high{border-color:#f0d9a0;background:var(--amber-l);color:#8a5a06}
+.tgtedit summary{cursor:pointer;list-style:none} .tgtedit summary::-webkit-details-marker{display:none}
+.tgtedit[open] summary{margin-bottom:.2rem}
+.meal .list li{flex-wrap:nowrap}
+
+/* on/off switch used in the Foods and Dishes tables */
+.switch{position:relative;width:2.6rem;height:1.5rem;border-radius:999px;border:0;background:#c9d3cd;cursor:pointer;padding:0;transition:background .15s}
+.switch::after{content:"";position:absolute;top:.2rem;left:.2rem;width:1.1rem;height:1.1rem;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.switch.on{background:var(--lime,#84cc16)}
+.switch.on::after{transform:translateX(1.1rem)}

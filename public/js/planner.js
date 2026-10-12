@@ -1,4 +1,4 @@
-/* Meal planner: the survey (one question to a screen) and "Change" on a planned food, with the calorie effect of each choice. */
+/* Meal planner survey: one question to a screen, with the live numbers on the last screen. */
 (function () {
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
@@ -6,60 +6,6 @@
   var token = function () { return (document.querySelector('meta[name=csrf-token]') || {}).content || ''; };
   var fmt = function (n) { return Math.round(n).toLocaleString('en-US'); };
   var sign = function (n) { return (n > 0 ? '+' : n < 0 ? '−' : '') + fmt(Math.abs(n)); };
-
-  /* ---------------- changing one planned food, to fit the calorie target ---------------- */
-  var meals = $('#meals[data-item-url]');
-  if (meals) {
-    var alts = {};
-    try { alts = JSON.parse($('#alts').textContent); } catch (e) {}
-    var dayKcal = +meals.getAttribute('data-daykcal') || 0, target = +meals.getAttribute('data-target') || 0;
-    meals.addEventListener('click', function (e) {
-      var b = e.target.closest('.chg'); if (!b) return;
-      var li = b.closest('li'), open = $('.chgform', li);
-      if (open) { open.remove(); return; }
-      $$('.chgform', meals).forEach(function (x) { x.remove(); });
-      var grp = b.getAttribute('data-grp'), sub = b.getAttribute('data-sub'), cur = b.getAttribute('data-food');
-      var curK = +b.getAttribute('data-kcal') || 0, n = +b.getAttribute('data-servings') || 1;
-      var list = (alts[grp] || []).filter(function (f) {
-        return (!sub || f.s === sub) && (String(f.id) === cur || f.m.indexOf(b.getAttribute('data-type')) > -1);
-      }).map(function (f) { return { f: f, gap: target ? Math.abs(dayKcal - curK + f.k * n - target) : 0 }; })
-        .sort(function (a, c) { return a.gap - c.gap || a.f.n.localeCompare(c.f.n); });
-      var best = list.length ? list[0].f.id : null, byId = {};
-      list.forEach(function (o) { byId[o.f.id] = o.f; });
-      var form = document.createElement('form');
-      form.method = 'post'; form.action = meals.getAttribute('data-item-url'); form.className = 'chgform';
-      form.innerHTML = '<input type="hidden" name="_token" value="' + esc(token()) + '">' +
-        '<input type="hidden" name="day" value="' + esc(meals.getAttribute('data-day')) + '"><input type="hidden" name="meal" value="' + esc(b.getAttribute('data-meal')) + '"><input type="hidden" name="item" value="' + esc(b.getAttribute('data-item')) + '">' +
-        '<label class="chglab">Food</label><select name="food_id" aria-label="Replace ' + esc(b.getAttribute('data-name')) + ' with"></select>' +
-        '<label class="chglab">Portion</label><select name="servings" aria-label="How much"></select>' +
-        '<button class="btn sm">Use this</button><p class="chghint small muted"></p>';
-      li.appendChild(form);
-      var sel = $('select[name=food_id]', form), por = $('select[name=servings]', form), hint = $('.chghint', form);
-      sel.innerHTML = list.map(function (o) {
-        var d = o.f.k * n - curK;
-        var label = String(o.f.id) === cur ? 'Keep: ' + o.f.n : o.f.n + ' (' + (d === 0 ? 'same calories' : sign(d) + ' kcal') + ')' + (o.f.id === best && String(o.f.id) !== cur ? ' \u2605 best fit' : '');
-        return '<option value="' + o.f.id + '"' + (String(o.f.id) === cur ? ' selected' : '') + '>' + esc(label) + '</option>';
-      }).join('');
-      var chosen = n;
-      var fillPortions = function () {
-        var f = byId[sel.value], top = Math.max(6, n + 3), html = '';
-        for (var k = 1; k <= Math.min(8, top); k++) {
-          var d = f.k * k - curK;
-          html += '<option value="' + k + '"' + (k === chosen ? ' selected' : '') + '>' + k + ' \u00d7 ' + esc(f.q) + ' (' + fmt(f.k * k) + ' kcal' + (k === n && String(f.id) === cur ? ', now' : (d === 0 ? '' : ', ' + sign(d))) + ')</option>';
-        }
-        por.innerHTML = html;
-      };
-      var say = function () {
-        var f = byId[sel.value], k = +por.value || chosen, after = dayKcal - curK + f.k * k;
-        hint.textContent = target ? 'Day total after this change: about ' + fmt(after) + ' kcal (target ' + fmt(target) + (after > target * 1.05 ? ', a little over' : after < target * 0.93 ? ', a little under' : ', on target') + ').' : '';
-      };
-      sel.addEventListener('change', function () { chosen = +por.value || chosen; fillPortions(); say(); });
-      por.addEventListener('change', function () { chosen = +por.value; say(); });
-      fillPortions();
-      say();
-      sel.focus();
-    });
-  }
 
   /* ---------------- the survey ---------------- */
   var form = $('#wiz');
@@ -119,7 +65,6 @@
   function texts(name) { return checked(name).map(function (v) { var i = $('[name="' + name + '"][value="' + v + '"]', form); return i.nextElementSibling.textContent; }); }
   function review() {
     var avoid = ['no_beef', 'no_pork'].filter(function (n) { return form.querySelector('[name=' + n + ']').checked && !$('#meatbox').hidden; }).map(function (n) { return n === 'no_beef' ? 'no beef' : 'no pork'; });
-    var usual = ['breakfast', 'lunch', 'dinner'].map(function (s) { var t = texts('usual_' + s + '[]'); return t.length ? s + ': ' + t.slice(0, 3).join(', ') + (t.length > 3 ? ' and ' + (t.length - 3) + ' more' : '') : ''; }).filter(Boolean);
     var tw = form.target_weight.value ? ', target ' + form.target_weight.value + ' kg' : '';
     var all = texts('allergies[]'), causes = texts('causes[]');
     var wn = $('.wnote span', form);
@@ -133,7 +78,7 @@
       ['Meals', label('meals')],
       ['Eating', label('pattern') + (avoid.length ? ' (' + avoid.join(', ') + ')' : '')],
       ['Allergies', all.length ? all.join(', ') : 'None']
-    ].concat(usual.length ? [['Usually eat', usual.join('. ')]] : []);
+    ];
     $('#rv-list').innerHTML = rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('');
   }
 

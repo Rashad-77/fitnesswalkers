@@ -60,8 +60,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('exercises', Admin\ExerciseController::class)->except('show');
     Route::resource('equipment', Admin\EquipmentController::class)->only(['index', 'store', 'update', 'destroy']);
 
+    Route::resource('dishes', Admin\DishController::class)->except('show');
     Route::resource('foods', Admin\FoodController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('diets', Admin\DietController::class)->only(['index', 'show', 'create', 'store', 'destroy']);
+    Route::post('diets/{diet}/targets', [Admin\DietController::class, 'targets'])->name('diets.targets');
+    Route::post('diets/{diet}/targets/reset', [Admin\DietController::class, 'resetTargets'])->name('diets.targets.reset');
 
     Route::resource('announcements', Admin\AnnouncementController::class)->except('show');
     Route::get('audit', [Admin\SystemController::class, 'audit'])->name('audit');
@@ -102,7 +105,10 @@ Route::middleware(['auth', 'role:member'])->prefix('app')->name('member.')->grou
     Route::get('diet/create', [Member\DietController::class, 'create'])->name('diet.create');
     Route::post('diet/preview', [Member\DietController::class, 'preview'])->name('diet.preview');
     Route::post('diet', [Member\DietController::class, 'generate'])->name('diet.generate');
-    Route::post('diet/item', [Member\DietController::class, 'item'])->name('diet.item');
     Route::get('diet/shopping', [Member\DietController::class, 'shopping'])->name('diet.shopping');
-    Route::post('diet/swap', [Member\DietController::class, 'swap'])->name('diet.swap');
+    Route::post('diet/dish', [Member\DietController::class, 'dish'])->name('diet.dish');
+    Route::post('diet/reroll', [Member\DietController::class, 'reroll'])->name('diet.reroll');
+    Route::post('diet/targets', [Member\DietController::class, 'targets'])->name('diet.targets');
+    Route::post('diet/targets/reset', [Member\DietController::class, 'resetTargets'])->name('diet.targets.reset');
+    Route::post('diet/checkin', [Member\DietController::class, 'checkin'])->name('diet.checkin');
 });

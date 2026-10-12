@@ -53,7 +53,7 @@ class FoodController extends Controller
         $d = $r->validate([
             'name' => 'required|max:120', 'local_name' => 'nullable|max:120', 'grp' => 'required|in:'.implode(',', array_keys(Food::SHORT)), 'sub' => 'nullable|max:40',
             'per_serving' => 'required|numeric|min:0.01|max:1000', 'unit' => 'required|max:30', 'unit_plural' => 'nullable|max:30', 'serving_g' => 'nullable|numeric|min:0|max:2000',
-            'kcal_serving' => 'required|integer|min:0|max:2000', 'protein_serving' => 'required|numeric|min:0|max:200',
+            'kcal_serving' => 'required|integer|min:0|max:2000', 'protein_serving' => 'required|numeric|min:0|max:200', 'carbs_serving' => 'nullable|numeric|min:0|max:500', 'fat_serving' => 'nullable|numeric|min:0|max:200',
             'diet' => 'required|in:'.implode(',', array_keys(Food::DIETS)), 'allergens' => 'array', 'allergens.*' => 'in:'.implode(',', Food::ALLERGENS),
             'tags' => 'array', 'tags.*' => 'in:beef,pork', 'meal_tags' => 'array', 'meal_tags.*' => 'in:breakfast,main,snack', 'note' => 'nullable|max:200',
         ]);
@@ -61,7 +61,11 @@ class FoodController extends Controller
         $d['tags'] = implode(',', $d['tags'] ?? []) ?: null;
         $d['meal_tags'] = implode(',', $d['meal_tags'] ?? ['main']);
         $d['whole_grain'] = $r->boolean('whole_grain'); $d['limited'] = $r->boolean('limited');
-        $d['sub'] = $d['sub'] ?: null; $d['unit_plural'] = $d['unit_plural'] ?: null; $d['local_name'] = $d['local_name'] ?: null;
+        if (! isset($d['carbs_serving']) || ! isset($d['fat_serving'])) {                      // left blank: estimate from the calories and protein
+            $m = Food::estimateMacros($d['grp'], $d['sub'] ?? null, $d['name'], $d['kcal_serving'], (float) $d['protein_serving']);
+            $d['carbs_serving'] ??= $m['carbs']; $d['fat_serving'] ??= $m['fat'];
+        }
+        $d['sub'] = ($d['sub'] ?? null) ?: null; $d['unit_plural'] = ($d['unit_plural'] ?? null) ?: null; $d['local_name'] = ($d['local_name'] ?? null) ?: null; $d['note'] = ($d['note'] ?? null) ?: null;
         return $d;
     }
 }
