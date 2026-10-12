@@ -57,6 +57,20 @@ There is no Node/npm build: the CSS and JS are plain files in `public/`.
 7. Sign in, go to **Settings → My account** and replace the sample login, then work through **Settings → Sample data**.
 8. Make sure PHP is 8.3+ (cPanel → Select PHP Version) and that `storage/` and `bootstrap/cache/` are writable (permissions 755/775).
 
+## Putting it online on Vercel (alternative to register.lk)
+
+Vercel has no PHP of its own, so this uses the community `vercel-php` runtime (`vercel.json`, `api/index.php`). Things that behave differently there:
+video **file uploads** for exercises are switched off (paste a video link instead), and there is no cron, so the weekly food-price update does not run.
+
+1. **Database:** Vercel has none, so create a free MySQL database elsewhere (for example TiDB Cloud Serverless or Aiven). Note host, port, database, user and password.
+2. **Create the tables once, from your computer:** put those details in your local `.env` (`DB_CONNECTION=mysql`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`,
+   and if the provider requires SSL, `MYSQL_ATTR_SSL_CA=` the path of your system's CA file, e.g. `/etc/ssl/certs/ca-certificates.crt` on Linux/Mac),
+   then run `php artisan migrate --force --seed`. Afterwards put your `.env` back to SQLite for local work.
+3. **vercel.com:** Add New > Project > import this GitHub repository. Framework preset **Other**; leave build and output settings alone (`vercel.json` sets them).
+4. **Environment variables** (Project > Settings > Environment Variables): `APP_KEY` (run `php artisan key:generate --show` on your computer), `APP_URL` (your Vercel address, with https),
+   `APP_TIMEZONE=Asia/Colombo`, and the same `DB_*` values (plus `MYSQL_ATTR_SSL_CA=/etc/ssl/certs/ca-certificates.crt` if SSL is required).
+5. Deploy. Vercel redeploys on every push to the branch you chose as Production Branch.
+
 ## Food prices: how "automatic" really is
 
 There is no free, live feed of Sri Lankan food prices (the Census Dept and HARTI publish PDFs/tables, not an API). So prices update three ways:

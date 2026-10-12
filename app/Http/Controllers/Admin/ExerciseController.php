@@ -58,6 +58,9 @@ class ExerciseController extends Controller
         ]);
         unset($d['clip']);
         if ($r->hasFile('clip')) {
+            if (env('VERCEL')) {   // Vercel's disk is temporary, so an uploaded file would vanish
+                throw \Illuminate\Validation\ValidationException::withMessages(['clip' => 'Video uploads are not available on this hosting. Paste a video link instead.']);
+            }
             $this->removeClip($ex);
             $name = bin2hex(random_bytes(8)).'.'.$r->file('clip')->getClientOriginalExtension();
             $r->file('clip')->move(public_path('uploads/clips'), $name);
