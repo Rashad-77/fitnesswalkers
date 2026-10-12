@@ -20,7 +20,7 @@ class WorkoutController extends Controller
             'lastRequest' => $m->planRequests()->first(), 'thisWeek' => $thisWeek,
             'library' => Exercise::available()->with('equipment')->when($group, fn ($q) => $q->where('muscle_group', $group))->orderBy('muscle_group')->orderBy('name')->get(),
             'groups' => \App\Http\Controllers\Admin\ExerciseController::GROUPS, 'group' => $group,
-            'canRequest' => in_array($m->status(), ['active', 'expiring']),
+            'canRequest' => in_array($m->status(), ['active', 'expiring']), 'due' => $m->balanceDue(),
         ]);
     }
 

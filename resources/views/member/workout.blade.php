@@ -11,13 +11,15 @@
     @endforeach
   </div>
 @elseif ($pending)
-  <div class="card mb"><h2>Request sent</h2><p>The owner is putting your plan together. You'll see it here once he approves it.</p>
+  <div class="card mb"><h2>Request sent</h2>
+    @if ($due > 0)<div class="alert warn"><b>Waiting for payment.</b> You still owe {{ rs($due) }}. Pay at the gym, then the owner can approve your plan.</div>@endif
+    <p>The owner is putting your plan together with the sets and reps for you. You'll see it here once he approves it. Your meal plan unlocks after that.</p>
     <p class="small muted">{{ str_replace('_', ' ', $pending->goal) }} · {{ $pending->level }} · {{ $pending->days_per_week }} days a week</p></div>
 @else
   @if ($lastRequest?->status === 'rejected')<div class="alert warn"><strong>Your last request was declined:</strong> {{ $lastRequest->admin_note }}</div>@endif
   <div class="card mb"><h2>Get a workout plan</h2>
     @if ($canRequest)
-    <p class="small muted">The owner will build a plan for you and approve it before you see it.</p>
+    <p class="small muted">The owner builds a plan just for you, with the sets and reps, and approves it after your payment. Then you can get your meal plan.</p>
     <form method="post" action="{{ route('member.workout.request') }}">@csrf
       <div class="f"><label>Your goal</label><select name="goal"><option value="general">General fitness</option><option value="fat_loss">Lose fat</option><option value="muscle_gain">Build muscle</option></select></div>
       <div class="f"><label>Experience</label><select name="level"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option></select></div>

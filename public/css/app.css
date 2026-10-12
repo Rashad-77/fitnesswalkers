@@ -522,3 +522,9 @@ input[type=checkbox],input[type=radio]{accent-color:var(--fern)}
 .chglab{flex-basis:100%;margin:.4rem 0 0;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
 .chgform select{min-width:0;flex:1 1 55%}
 .meal .list .it{flex:1 1 55%;min-width:0}
+
+/* ================= exercise tutorials ================= */
+.tutorial{display:block;width:100%;max-height:340px;object-fit:contain;border-radius:14px;background:#0c211a} .tutorial.small{max-height:230px}
+.clip-ph{display:flex;gap:.7rem;align-items:center;justify-content:center;text-align:left}
+.clip-ph .ico{width:1.8rem;height:1.8rem;color:var(--fern);flex:none}
+.payrow.due{border-color:#f3dfae;background:var(--amber-l)} .payrow.paid{border-color:#d8ecaa;background:var(--lime-l)}

@@ -21,22 +21,27 @@ class PlanRequestController extends Controller
         $planRequest->load(['member.user', 'plan.items.exercise']);
         $suggested = WorkoutTemplate::where('goal', $planRequest->goal)->orderByRaw('level = ? desc', [$planRequest->level])->get();
         return view('admin.requests.show', [
-            'req' => $planRequest, 'templates' => WorkoutTemplate::orderBy('name')->get(), 'suggested' => $suggested,
+            'due' => $planRequest->member->balanceDue(), 'req' => $planRequest, 'templates' => WorkoutTemplate::orderBy('name')->get(), 'suggested' => $suggested,
             'exercises' => Exercise::available()->orderBy('muscle_group')->orderBy('name')->get(),
         ]);
     }
 
     public function draft(Request $r, PlanRequest $planRequest)
     {
-        $d = $r->validate(['template_id' => 'required|exists:workout_templates,id']);
-        $tpl = WorkoutTemplate::with('items')->find($d['template_id']);
+        $d = $r->validate(['template_id' => ['required', fn ($a, $v, $fail) => $v === 'blank' || WorkoutTemplate::whereKey($v)->exists() ?: $fail('Pick a template.')]]);
         $planRequest->plan?->delete();
+        if ($d['template_id'] === 'blank') {                                  // start from an empty plan and pick every exercise yourself
+            WorkoutPlan::create(['member_id' => $planRequest->member_id, 'plan_request_id' => $planRequest->id, 'name' => 'Plan for '.$planRequest->member->user->name, 'status' => 'draft']);
+            AuditLog::record('Started a blank workout plan', $planRequest->member->member_no);
+            return back()->with('ok', 'Blank plan started. Choose the exercises, sets and reps below, then approve.');
+        }
+        $tpl = WorkoutTemplate::with('items')->find($d['template_id']);
         $plan = WorkoutPlan::create(['member_id' => $planRequest->member_id, 'plan_request_id' => $planRequest->id, 'name' => $tpl->name, 'status' => 'draft']);
         foreach ($tpl->items as $it) {
             WorkoutPlanItem::create(['workout_plan_id' => $plan->id, 'day_no' => $it->day_no, 'exercise_id' => $it->exercise_id, 'sets' => $it->sets, 'reps' => $it->reps]);
         }
         AuditLog::record('Drafted workout plan from template', $planRequest->member->member_no, $tpl->name);
-        return back()->with('ok', 'Draft created from the template. Edit it below, then approve.');
+        return back()->with('ok', 'Draft created from the template. Set the sets and reps below, then approve.');
     }
 
     public function updatePlan(Request $r, PlanRequest $planRequest)
@@ -52,10 +57,13 @@ class PlanRequestController extends Controller
         return back()->with('ok', 'Plan saved. Members only see it after you approve it.');
     }
 
-    public function approve(PlanRequest $planRequest)
+    public function approve(Request $r, PlanRequest $planRequest)
     {
         $plan = $planRequest->plan;
         if (! $plan || $plan->items()->count() === 0) return back()->with('warn', 'Add exercises to the plan before approving.');
+        $due = $planRequest->member->balanceDue();                          // plans are approved after payment
+        if ($due > 0 && ! $r->boolean('override')) return back()->with('warn', 'This member still owes '.rs($due).'. Record their payment first, or tick "approve anyway".');
+        if ($due > 0) AuditLog::record('Approved plan before payment', $planRequest->member->member_no, rs($due).' still due');
         WorkoutPlan::where('member_id', $planRequest->member_id)->where('status', 'approved')->update(['status' => 'archived']);
         $plan->update(['status' => 'approved', 'approved_at' => now(), 'is_dummy' => false]);
         $planRequest->update(['status' => 'approved', 'is_dummy' => false]);

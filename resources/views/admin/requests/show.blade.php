@@ -10,22 +10,27 @@
   <p class="small muted">Status: <span class="b {{ $req->status }}">{{ $req->status }}</span>. The member cannot see anything until you approve.</p>
 </div>
 @if ($req->status === 'pending')
-<div class="card mb"><h2>1. Start from a template</h2>
+<div class="card mb row between payrow {{ $due > 0 ? 'due' : 'paid' }}">
+  <div><b>Payment</b> @if ($due > 0)<span class="b pending">{{ rs($due) }} still due</span> <span class="muted small">Plans are approved after payment.</span>@else<span class="b done">Paid in full</span> <span class="muted small">Ready to approve.</span>@endif</div>
+  @if ($due > 0)<a class="btn ghost sm" href="{{ route('admin.members.show', [$req->member, 'tab' => 'payments']) }}">Record a payment</a>@endif</div>
+<div class="card mb"><h2>1. Start your plan</h2>
   <form method="post" action="{{ route('admin.requests.draft', $req) }}" class="row">@csrf
-    <select name="template_id" style="max-width:380px">@foreach ($suggested as $t)<option value="{{ $t->id }}">Suggested: {{ $t->name }}</option>@endforeach
+    <select name="template_id" style="max-width:380px"><option value="blank">Start with a blank plan</option>@foreach ($suggested as $t)<option value="{{ $t->id }}">Suggested: {{ $t->name }}</option>@endforeach
       @foreach ($templates->whereNotIn('id', $suggested->pluck('id')) as $t)<option value="{{ $t->id }}">{{ $t->name }}</option>@endforeach</select>
-    <button class="btn dark">{{ $req->plan ? 'Replace draft with this template' : 'Create draft' }}</button></form>
+    <button class="btn dark">{{ $req->plan ? 'Replace the draft' : 'Create draft' }}</button></form>
 </div>
 @if ($req->plan)
 <form class="card mb" method="post" action="{{ route('admin.requests.update', $req) }}">@csrf @method('PUT')
-  <h2>2. Edit the draft</h2>
+  <h2>2. Choose exercises, sets and reps</h2><p class="small muted" style="margin-top:0">You decide how many sets and reps (or seconds) for each exercise. Members see exactly what you enter.</p>
   <div class="f"><label>Plan name</label><input type="text" name="name" value="{{ old('name', $req->plan->name) }}" required style="max-width:420px"></div>
   @include('partials.plan_items', ['items' => $req->plan->items, 'exercises' => $exercises])
   <div class="mt"><button class="btn dark">Save draft</button></div>
 </form>
 <div class="card mb"><h2>3. Approve or decline</h2>
   <div class="row">
-    <form method="post" action="{{ route('admin.requests.approve', $req) }}">@csrf<button class="btn" data-confirm="Approve and show this plan to the member?">Approve and show to member</button></form>
+    <form method="post" action="{{ route('admin.requests.approve', $req) }}" class="row">@csrf
+      @if ($due > 0)<label class="checks" style="margin:0"><input type="checkbox" name="override" value="1"> Approve anyway (they will pay later)</label>@endif
+      <button class="btn" data-confirm="Approve and show this plan to the member?">Approve and show to member</button></form>
   </div>
   <form method="post" action="{{ route('admin.requests.reject', $req) }}" class="mt">@csrf
     <div class="f"><label>Or decline with a note for the member</label><input type="text" name="admin_note" placeholder="e.g. Please come in so I can check your form first"></div>

@@ -12,9 +12,12 @@ class ExerciseController extends Controller
 
     public function index(Request $r)
     {
-        $items = Exercise::with('equipment')->when($r->query('group'), fn ($q, $g) => $q->where('muscle_group', $g))
+        $all = Exercise::with('equipment')->when($r->query('group'), fn ($q, $g) => $q->where('muscle_group', $g))
             ->when($r->query('q'), fn ($q, $s) => $q->where('name', 'like', "%$s%"))->orderBy('muscle_group')->orderBy('name')->get();
-        return view('admin.exercises.index', ['items' => $items, 'groups' => self::GROUPS, 'group' => $r->query('group'), 'q' => $r->query('q')]);
+        $missing = Exercise::all()->filter(fn ($e) => ! $e->mediaUrl())->count();
+        $items = $r->query('tutorial') === 'missing' ? $all->filter(fn ($e) => ! $e->mediaUrl())->values() : $all;
+        return view('admin.exercises.index', ['items' => $items, 'groups' => self::GROUPS, 'group' => $r->query('group'), 'q' => $r->query('q'),
+            'missing' => $missing, 'total' => Exercise::count(), 'onlyMissing' => $r->query('tutorial') === 'missing']);
     }
 
     public function create()
@@ -54,12 +57,12 @@ class ExerciseController extends Controller
         $d = $r->validate([
             'name' => 'required|max:120', 'muscle_group' => 'required|in:'.implode(',', self::GROUPS),
             'equipment_id' => 'nullable|exists:equipment,id', 'steps' => 'required|string|max:4000', 'mistakes' => 'nullable|string|max:2000',
-            'clip_url' => 'nullable|url|max:500', 'clip' => 'nullable|file|mimes:mp4,webm|max:20480',
+            'clip_url' => 'nullable|url|max:500', 'clip' => 'nullable|file|mimes:mp4,webm,gif,webp|max:20480',
         ]);
         unset($d['clip']);
         if ($r->hasFile('clip')) {
             if (env('VERCEL')) {   // Vercel's disk is temporary, so an uploaded file would vanish
-                throw \Illuminate\Validation\ValidationException::withMessages(['clip' => 'Video uploads are not available on this hosting. Paste a video link instead.']);
+                throw \Illuminate\Validation\ValidationException::withMessages(['clip' => 'File uploads are not available on this hosting. Paste a link to the GIF instead, or add the file to public/img/exercises named after the exercise.']);
             }
             $this->removeClip($ex);
             $name = bin2hex(random_bytes(8)).'.'.$r->file('clip')->getClientOriginalExtension();

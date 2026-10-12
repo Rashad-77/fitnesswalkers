@@ -8,6 +8,7 @@
   @php $prev = $last[$it->exercise_id]; $todays = $today[$it->exercise_id] ?? collect(); @endphp
   <div class="card mb">
     <div class="row between"><h2 style="margin:0">@if ($it->exercise->isAvailable())<a href="{{ route('member.exercise', $it->exercise) }}">{{ $it->exercise->name }}</a>@else{{ $it->exercise->name }}@endif</h2><span class="b">{{ $it->sets }} x {{ $it->reps }}</span></div>
+    <div class="mt">@include('partials.exercise_media', ['ex' => $it->exercise, 'class' => 'small'])</div>
     @unless ($it->exercise->isAvailable())<div class="alert warn" style="margin-top:.5rem">⚠ This equipment is out of order right now. Swap it for another exercise below.</div>@endunless
     @if ($prev->count())<p class="small muted" style="margin:.3rem 0">Last time: {{ $prev->map(fn ($s) => $s->reps.'×'.rtrim(rtrim((string) $s->weight_kg, '0'), '.').'kg')->implode(', ') }}</p>@endif
     <div class="tw"><table>
