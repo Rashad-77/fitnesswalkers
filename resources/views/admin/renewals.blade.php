@@ -1,8 +1,8 @@
 @extends('layouts.admin')
-@section('title', 'Reminders')
+@section('title', 'Renewals')
 @section('content')
-<h1>Reminders</h1>
-<p class="muted">Members to contact today. Use WhatsApp to open a prepared message, send it, then select <strong>Mark sent</strong> to keep a record.</p>
+<h1>Renewals</h1>
+<p class="muted">Members who asked to renew, and memberships that are ending or have just ended.</p>
 @if ($requests->count())
 <div class="card mb"><h2>Members who asked to renew</h2>
   @foreach ($requests as $q)
@@ -19,14 +19,8 @@
   @forelse ($g['rows'] as $r)
     <div class="row between" style="padding:.5rem 0;border-bottom:1px solid #eef0ea">
       <span><a href="{{ route('admin.members.show', $r['m']) }}">{{ $r['m']->user->name }}</a>
-        <span class="muted small">· {{ $r['detail'] }}</span>
-        @if ($r['sent'])<span class="b done">sent {{ $r['sent']->isToday() ? 'today' : $r['sent']->diffForHumans() }}</span>@endif</span>
-      <span class="row">
-        @if ($r['wa'])<a class="btn sm" target="_blank" rel="noopener" href="{{ $r['wa'] }}">WhatsApp</a>@else<span class="muted small">no phone</span>@endif
-        <form method="post" action="{{ route('admin.reminders.sent') }}">@csrf
-          <input type="hidden" name="member_id" value="{{ $r['m']->id }}"><input type="hidden" name="kind" value="{{ $kind }}">
-          <button class="btn ghost sm">Mark sent</button></form>
-      </span>
+        <span class="muted small">· {{ $r['detail'] }}</span></span>
+      <a class="btn sm" href="{{ route('admin.members.show', [$r['m'], 'tab' => 'payments']) }}">Renew</a>
     </div>
   @empty <div class="empty">{{ $g['empty'] }}</div> @endforelse
 </div>

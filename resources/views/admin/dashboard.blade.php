@@ -23,8 +23,7 @@
     @forelse ($expiring->take(4) as $m)
       <div class="line"><span><a href="{{ route('admin.members.show', $m) }}">{{ $m->user->name }}</a>
         <span class="sub">{{ $m->daysLeft() === 0 ? 'ends today' : $m->daysLeft().' days left' }}</span></span>
-        @if ($wa = $m->whatsappUrl('Hi '.$m->user->name.', your membership at '.\App\Models\Setting::get('gym_name', 'FitnessWalkers').' ends on '.$m->currentMembership->ends_on->format('d M Y').'. Reply here or visit us to renew. Thank you!'))
-          <a class="btn sm" target="_blank" rel="noopener" href="{{ $wa }}">WhatsApp</a>@endif</div>
+</div>
     @empty <div class="none">No memberships expiring.</div> @endforelse
     @if ($expiring->count() > 4)<a class="small" href="{{ route('admin.renewals') }}">+{{ $expiring->count() - 4 }} more</a>@endif
   </div>

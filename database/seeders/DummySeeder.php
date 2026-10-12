@@ -124,62 +124,7 @@ class DummySeeder extends Seeder
 
     private function foods(): void
     {
-        // name, category, diet_type, allergens, kcal, protein, carbs, fat, Rs/kg (all prices are PLACEHOLDER estimates)
-        $rows = [
-            ['White Rice, cooked', 'grain', 'vegan', '', 130, 2.7, 28, 0.3, 120],
-            ['Red Rice, cooked', 'grain', 'vegan', '', 123, 2.7, 26, 1.0, 140],
-            ['Roti (wheat)', 'grain', 'vegan', 'gluten', 297, 9, 50, 7, 420],
-            ['Bread, white', 'grain', 'vegan', 'gluten', 265, 9, 49, 3.2, 380],
-            ['Oats, dry', 'grain', 'vegan', 'gluten', 389, 17, 66, 7, 1300],
-            ['String Hoppers (idiyappam)', 'grain', 'vegan', '', 140, 3, 30, 0.5, 350],
-            ['Sweet Potato, boiled', 'grain', 'vegan', '', 90, 2, 21, 0.1, 260],
-            ['Chicken Breast, cooked', 'protein', 'non_veg', '', 165, 31, 0, 3.6, 1600],
-            ['Egg, boiled', 'protein', 'vegetarian', 'egg', 143, 12.6, 0.7, 9.5, 1000],
-            ['Fish (Balaya), cooked', 'protein', 'non_veg', 'fish', 130, 23, 0, 4, 1200],
-            ['Dried Sprats (Haalmassa)', 'protein', 'non_veg', 'fish', 290, 52, 0, 8, 1800],
-            ['Dhal, cooked', 'legume', 'vegan', '', 116, 9, 20, 0.4, 180],
-            ['Chickpeas, cooked', 'legume', 'vegan', '', 164, 8.9, 27, 2.6, 480],
-            ['Green Gram (Mung), cooked', 'legume', 'vegan', '', 105, 7, 19, 0.4, 400],
-            ['Cowpea, cooked', 'legume', 'vegan', '', 116, 7.7, 21, 0.5, 380],
-            ['Soya Meat, dry', 'legume', 'vegan', 'soy', 345, 52, 33, 0.5, 1000],
-            ['Tofu', 'legume', 'vegan', 'soy', 76, 8, 1.9, 4.8, 1300],
-            ['Milk, fresh', 'dairy', 'vegetarian', 'dairy', 61, 3.2, 4.8, 3.3, 300],
-            ['Yoghurt, plain', 'dairy', 'vegetarian', 'dairy', 61, 3.5, 4.7, 3.3, 500],
-            ['Mixed Vegetables, cooked', 'veg', 'vegan', '', 40, 2, 7, 0.5, 260],
-            ['Gotukola / Leafy Greens', 'veg', 'vegan', '', 25, 2.5, 3, 0.5, 220],
-            ['Pumpkin', 'veg', 'vegan', '', 26, 1, 6.5, 0.1, 160],
-            ['Brinjal', 'veg', 'vegan', '', 35, 1, 8.7, 0.2, 300],
-            ['Green Beans', 'veg', 'vegan', '', 31, 1.8, 7, 0.2, 380],
-            ['Carrot', 'veg', 'vegan', '', 41, 0.9, 9.6, 0.2, 320],
-            ['Cabbage', 'veg', 'vegan', '', 25, 1.3, 6, 0.1, 220],
-            ['Banana', 'fruit', 'vegan', '', 89, 1.1, 23, 0.3, 260],
-            ['Papaya', 'fruit', 'vegan', '', 43, 0.5, 11, 0.3, 220],
-            ['Pineapple', 'fruit', 'vegan', '', 50, 0.5, 13, 0.1, 320],
-            ['Watermelon', 'fruit', 'vegan', '', 30, 0.6, 8, 0.2, 140],
-            ['Apple', 'fruit', 'vegan', '', 52, 0.3, 14, 0.2, 750],
-            ['Orange', 'fruit', 'vegan', '', 47, 0.9, 12, 0.1, 650],
-            ['Coconut Oil', 'fat', 'vegan', '', 884, 0, 0, 100, 950],
-            ['Grated Coconut', 'fat', 'vegan', '', 354, 3.3, 15, 33, 320],
-            ['Peanuts', 'fat', 'vegan', 'nuts', 567, 26, 16, 49, 750],
-        ];
-        $tags = function (array $r): string {
-            $n = $r[0]; $c = $r[1];
-            $t = [];
-            if (preg_match('/Roti|Bread|Oats|String Hoppers|Egg|Milk|Yoghurt|Dhal|Banana|Papaya|Pineapple|Watermelon|Apple|Orange|Grated Coconut|Coconut Oil/', $n)) $t[] = 'breakfast';
-            if (! in_array($n, ['Oats, dry', 'Milk, fresh', 'Yoghurt, plain', 'Banana', 'Papaya', 'Pineapple', 'Watermelon', 'Apple', 'Orange', 'Roti (wheat)x'])) $t[] = 'main';
-            if (preg_match('/Banana|Papaya|Pineapple|Watermelon|Apple|Orange|Milk|Yoghurt|Egg|Peanut|Chickpea|Green Gram|Sweet Potato/', $n)) $t[] = 'snack';
-            if ($c === 'fruit') $t = array_diff($t, ['main']);
-            if ($c === 'fat') $t = ['breakfast', 'main'];
-            if ($n === 'Peanuts') $t = ['main', 'snack'];
-            return implode(',', array_unique($t ?: ['main']));
-        };
-        foreach ($rows as $r) {
-            Food::create(['meal_tags' => $tags($r)] + [
-                'name' => $r[0], 'category' => $r[1], 'diet_type' => $r[2], 'allergens' => $r[3] ?: null,
-                'kcal_100g' => $r[4], 'protein_100g' => $r[5], 'carbs_100g' => $r[6], 'fat_100g' => $r[7],
-                'price_per_kg' => $r[8], 'price_updated_on' => now()->subDays(20)->toDateString(),
-            ] + $this->d);
-        }
+        // The food catalogue now comes from the migration (FoodCatalogue::sync), so there is nothing to add here.
     }
 
     private function members(): void
