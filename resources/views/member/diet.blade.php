@@ -12,49 +12,74 @@
     <p>We now plan with real dishes and show how each meal fits your calories, protein, carbs and fat. Answer the questions again to get yours.</p>
     @if ($workout)<a class="btn" href="{{ route('member.diet.create', ['edit' => 1]) }}">Make my new plan</a>@else<p class="small"><b>{{ $waiting }}</b></p><a class="btn" href="{{ route('member.workout') }}">Go to my workout plan</a>@endif</div>
 @elseif ($plan)
-  <div class="row between mb"><span class="b active">made for you</span><span class="row"><a class="btn ghost sm" href="{{ route('member.diet.shopping') }}">Shopping list</a><a class="btn ghost sm" href="{{ route('member.diet.create', ['edit' => 1]) }}">Redo the survey</a></span></div>
+  @php
+    $ov = $plan->inputs['override'] ?? null; $base = $limits['base']; $tg = $plan->plan['targets'];
+    $tabs = ['meals' => 'Meals', 'targets' => 'Targets', 'checkin' => 'Check-in'];
+  @endphp
+  <div class="mp-top"><nav class="mp-tabs" aria-label="Meal plan sections">@foreach ($tabs as $k => $v)<a class="{{ $tab === $k ? 'on' : '' }}" href="{{ route('member.diet', ['tab' => $k]) }}" @if ($tab === $k) aria-current="page" @endif>{{ $v }}@if ($k === 'checkin' && $due)<i class="mp-badge" title="Due"></i>@endif</a>@endforeach</nav></div>
 
-  @php $ov = $plan->inputs['override'] ?? null; $base = $limits['base']; @endphp
-  <details class="card mb tgtedit" @if ($errors->any()) open @endif><summary><b>Adjust my targets</b> <span class="muted small">{{ $ownerSet ? 'set by your trainer' : ($ov ? 'changed by you' : 'from your survey') }}</span></summary>
-    @if ($ownerSet)<p class="small muted" style="margin:.7rem 0 0">Your trainer set your targets. Ask them if you want a change.</p>
-    @else
-    <p class="small muted" style="margin:.7rem 0">Your survey gave <b>{{ number_format($base['kcal']) }} kcal</b>, <b>{{ $base['protein'] }} g</b> protein. You can move them inside a safe range, and your whole week is rebuilt around the new numbers. Carbs are what is left.</p>
-    <form method="post" action="{{ route('member.diet.targets') }}" id="tgtform">@csrf
-      <div class="grid g3">
-        <div class="f"><label for="t-k">Calories a day</label><input id="t-k" type="number" name="kcal" value="{{ old('kcal', $plan->plan['targets']['kcal']) }}" min="{{ $limits['kcal'][0] }}" max="{{ $limits['kcal'][1] }}" required><p class="small muted">Safe range {{ number_format($limits['kcal'][0]) }} to {{ number_format($limits['kcal'][1]) }}</p></div>
-        <div class="f"><label for="t-p">Protein, g</label><input id="t-p" type="number" name="protein" value="{{ old('protein', $plan->plan['targets']['protein']) }}" min="{{ $limits['protein'][0] }}" max="{{ $limits['protein'][1] }}" required><p class="small muted">Range {{ $limits['protein'][0] }} to {{ $limits['protein'][1] }}</p></div>
-        <div class="f"><label for="t-f">Fat, % of calories</label><input id="t-f" type="number" name="fat_pct" value="{{ old('fat_pct', $plan->plan['targets']['fat_pct']) }}" min="{{ $limits['fat_pct'][0] }}" max="{{ $limits['fat_pct'][1] }}" required><p class="small muted">Range {{ $limits['fat_pct'][0] }} to {{ $limits['fat_pct'][1] }}%</p></div>
-      </div>
-      <p class="small" id="t-carbs" style="margin:0 0 .7rem"></p>
-      <div class="row"><button class="btn">Save and rebuild my week</button>@if ($ov)<button class="btn ghost" form="tgtreset">Back to my survey numbers</button>@endif</div>
-    </form>
-    @if ($ov)<form id="tgtreset" method="post" action="{{ route('member.diet.targets.reset') }}">@csrf</form>@endif
-    <script>(function(){var k=document.getElementById('t-k'),p=document.getElementById('t-p'),f=document.getElementById('t-f'),o=document.getElementById('t-carbs');if(!k)return;function u(){var c=(k.value-4*p.value-9*Math.round(k.value*f.value/100/9))/4;o.innerHTML='That gives about <b>'+Math.round(c)+' g</b> of carbs'+(c<{{ $limits['carbs_min'] }}?' <span style="color:#d4413a">(too low, the minimum is {{ $limits['carbs_min'] }} g)</span>':'')+'.';}[k,p,f].forEach(function(e){e.addEventListener('input',u)});u();})();</script>
+  @if ($tab === 'meals')
+    @include('partials.diet_plan', ['plan' => $plan->plan, 'day' => $day, 'swappable' => true, 'tabsUrl' => fn ($i) => route('member.diet', ['day' => $i]), 'ui' => $ui])
+    <p class="mp-redo"><a href="{{ route('member.diet.create', ['edit' => 1]) }}">Redo the survey</a></p>
+    @pushOnce('scripts', 'diet-js')<script src="/js/diet.js"></script>@endPushOnce
+
+  @elseif ($tab === 'targets')
+    <section class="mp-tiles">
+      <div class="dark"><b>{{ number_format($tg['kcal']) }}</b><span>calories a day</span></div>
+      <div><b>{{ $tg['protein'] }} g</b><span>protein</span></div>
+      <div><b>{{ $tg['carbs'] }} g</b><span>carbs</span></div>
+      <div><b>{{ $tg['fat'] }} g</b><span>fat · {{ $tg['fat_pct'] }}%</span></div>
+    </section>
+    <section class="mp-card">
+      <h2>Where these come from</h2>
+      <p class="small">Your body burns about <b>{{ number_format($base['tdee']) }} kcal</b> a day, counting your {{ $plan->plan['workout']['days'] ?? $plan->inputs['train_days'] }} workouts a week. Your goal moves that to <b>{{ number_format($base['kcal']) }} kcal</b>, with <b>{{ $base['protein'] }} g</b> of protein to protect your muscle. Carbs are what is left.</p>
+      @isset($plan->plan['workout']['name'])<p class="small muted">Built around your workout plan: {{ $plan->plan['workout']['name'] }}.</p>@endisset
+    </section>
+    <section class="mp-card" id="adjust">
+      <h2>Adjust my targets <span class="b {{ $ownerSet ? 'pending' : ($ov ? 'approved' : 'none') }}">{{ $ownerSet ? 'set by your trainer' : ($ov ? 'changed by you' : 'from your survey') }}</span></h2>
+      @if ($ownerSet)<p class="small muted">Your trainer set your targets. Ask them if you want a change.</p>
+      @else
+        <p class="small muted">You can move them inside a safe range, and your whole week is rebuilt around the new numbers.</p>
+        <form method="post" action="{{ route('member.diet.targets') }}" id="tgtform">@csrf
+          <div class="grid g3">
+            <div class="f"><label for="t-k">Calories a day</label><input id="t-k" type="number" name="kcal" value="{{ old('kcal', $tg['kcal']) }}" min="{{ $limits['kcal'][0] }}" max="{{ $limits['kcal'][1] }}" required><p class="small muted">Safe range {{ number_format($limits['kcal'][0]) }} to {{ number_format($limits['kcal'][1]) }}</p></div>
+            <div class="f"><label for="t-p">Protein, g</label><input id="t-p" type="number" name="protein" value="{{ old('protein', $tg['protein']) }}" min="{{ $limits['protein'][0] }}" max="{{ $limits['protein'][1] }}" required><p class="small muted">Range {{ $limits['protein'][0] }} to {{ $limits['protein'][1] }}</p></div>
+            <div class="f"><label for="t-f">Fat, % of calories</label><input id="t-f" type="number" name="fat_pct" value="{{ old('fat_pct', $tg['fat_pct']) }}" min="{{ $limits['fat_pct'][0] }}" max="{{ $limits['fat_pct'][1] }}" required><p class="small muted">Range {{ $limits['fat_pct'][0] }} to {{ $limits['fat_pct'][1] }}%</p></div>
+          </div>
+          <p class="small" id="t-carbs" style="margin:0 0 .7rem"></p>
+          <div class="row"><button class="btn">Save and rebuild my week</button>@if ($ov)<button class="btn ghost" form="tgtreset">Back to my survey numbers</button>@endif</div>
+        </form>
+        @if ($ov)<form id="tgtreset" method="post" action="{{ route('member.diet.targets.reset') }}">@csrf</form>@endif
+        <script>(function(){var k=document.getElementById('t-k'),p=document.getElementById('t-p'),f=document.getElementById('t-f'),o=document.getElementById('t-carbs');if(!k)return;function u(){var c=(k.value-4*p.value-9*Math.round(k.value*f.value/100/9))/4;o.innerHTML='That gives about <b>'+Math.round(c)+' g</b> of carbs'+(c<{{ $limits['carbs_min'] }}?' <span class="bad">which is too low</span>':'');}[k,p,f].forEach(function(e){e.addEventListener('input',u)});u();})();</script>
+      @endif
+    </section>
+
+  @else
+    <section class="mp-card" id="checkin">
+      <h2>Weekly check-in</h2>
+      @if ($due)
+        <p class="small muted">Tell us your weight and how the week went. If your weight is not moving at the pace your goal needs, we adjust your calories a little.</p>
+        <form method="post" action="{{ route('member.diet.checkin') }}">@csrf
+          <div class="f"><label for="c-w">Your weight today, in kg</label><input id="c-w" type="number" step="0.1" name="weight" value="{{ old('weight', $lastWeight) }}" required min="25" max="300" style="max-width:200px"></div>
+          <label>How well did you follow the plan?</label>
+          <div class="seg" style="margin-bottom:.8rem">@foreach (['most' => 'Most of it', 'some' => 'Some of it', 'little' => 'Hardly'] as $v => $l)<label><input type="radio" name="followed" value="{{ $v }}" @checked(old('followed', 'most') === $v)><span>{{ $l }}</span></label>@endforeach</div>
+          <label>Hunger</label>
+          <div class="seg" style="margin-bottom:.8rem">@foreach (['low' => 'Not hungry', 'ok' => 'Fine', 'high' => 'Very hungry'] as $v => $l)<label><input type="radio" name="hunger" value="{{ $v }}" @checked(old('hunger', 'ok') === $v)><span>{{ $l }}</span></label>@endforeach</div>
+          <label>Energy</label>
+          <div class="seg" style="margin-bottom:.8rem">@foreach (['low' => 'Low', 'ok' => 'Fine', 'high' => 'High'] as $v => $l)<label><input type="radio" name="energy" value="{{ $v }}" @checked(old('energy', 'ok') === $v)><span>{{ $l }}</span></label>@endforeach</div>
+          <div class="f"><label for="c-n">Anything to tell your trainer? (optional)</label><input id="c-n" type="text" name="note" maxlength="300" value="{{ old('note') }}"></div>
+          <button class="btn">Save check-in</button>
+        </form>
+      @else
+        <p class="small">You are up to date. Your next check-in is on <b>{{ $dueOn->format('l, d M') }}</b>.</p>
+      @endif
+    </section>
+    @if ($checkins->count())
+      <section class="mp-card"><h2>Recent weeks</h2>
+        @foreach ($checkins as $c)<div class="arow"><span class="adot"></span><span><b>{{ $c->week_of->format('d M') }} · {{ rtrim(rtrim(number_format($c->weight_kg, 1), '0'), '.') }} kg</b><small>{{ $c->message }}</small></span></div>@endforeach</section>
     @endif
-  </details>
-
-  @include('partials.diet_plan', ['plan' => $plan->plan, 'day' => $day, 'swappable' => true, 'tabsUrl' => fn ($i) => route('member.diet', ['day' => $i]), 'ui' => $ui])
-
-  <div class="card mb" id="checkin"><h2>Weekly check-in</h2>
-    @if ($due)
-      <p class="small muted" style="margin-top:0">Tell us your weight and how the week went. If your weight is not moving at the pace your goal needs, we adjust your calories a little.</p>
-      <form method="post" action="{{ route('member.diet.checkin') }}">@csrf
-        <div class="f"><label for="c-w">Your weight today, in kg</label><input id="c-w" type="number" step="0.1" name="weight" value="{{ old('weight', $lastWeight) }}" required min="25" max="300" style="max-width:200px"></div>
-        <label>How well did you follow the plan?</label>
-        <div class="seg" style="margin-bottom:.8rem">@foreach (['most' => 'Most of it', 'some' => 'Some of it', 'little' => 'Hardly'] as $v => $l)<label><input type="radio" name="followed" value="{{ $v }}" @checked(old('followed', 'most') === $v)><span>{{ $l }}</span></label>@endforeach</div>
-        <div class="grid g2"><div><label>Hunger</label><div class="seg" style="margin-bottom:.8rem">@foreach (['low' => 'Not hungry', 'ok' => 'Fine', 'high' => 'Very hungry'] as $v => $l)<label><input type="radio" name="hunger" value="{{ $v }}" @checked(old('hunger', 'ok') === $v)><span>{{ $l }}</span></label>@endforeach</div></div>
-          <div><label>Energy</label><div class="seg" style="margin-bottom:.8rem">@foreach (['low' => 'Low', 'ok' => 'Fine', 'high' => 'High'] as $v => $l)<label><input type="radio" name="energy" value="{{ $v }}" @checked(old('energy', 'ok') === $v)><span>{{ $l }}</span></label>@endforeach</div></div></div>
-        <div class="f"><label for="c-n">Anything to tell your trainer? (optional)</label><input id="c-n" type="text" name="note" maxlength="300" value="{{ old('note') }}"></div>
-        <button class="btn">Save check-in</button>
-      </form>
-    @else
-      <p class="small" style="margin-top:0">Your next check-in is on <b>{{ $dueOn->format('l, d M') }}</b>.</p>
-    @endif
-    @if ($checkins->count())<div class="mt"><h3 class="small" style="text-transform:uppercase;letter-spacing:.08em;color:var(--mut)">Recent</h3>
-      @foreach ($checkins as $c)<div class="arow"><span class="adot"></span><span><b>{{ $c->week_of->format('d M') }} · {{ rtrim(rtrim(number_format($c->weight_kg, 1), '0'), '.') }} kg</b><small>{{ $c->message }}</small></span></div>@endforeach</div>@endif
-  </div>
+  @endif
   <p class="disc">Plan made {{ $plan->created_at->format('d M Y') }}. The owner can also see your plan.</p>
-  @pushOnce('scripts', 'diet-js')<script src="/js/diet.js"></script>@endPushOnce
 @elseif (! $workout)
   <div class="card lockcard">
     <span class="lockic">@include('partials.i', ['n' => 'dumbbell'])</span>

@@ -109,7 +109,6 @@ Route::middleware(['auth', 'role:member'])->prefix('app')->name('member.')->grou
     Route::get('diet/create', [Member\DietController::class, 'create'])->name('diet.create');
     Route::post('diet/preview', [Member\DietController::class, 'preview'])->name('diet.preview');
     Route::post('diet', [Member\DietController::class, 'generate'])->name('diet.generate');
-    Route::get('diet/shopping', [Member\DietController::class, 'shopping'])->name('diet.shopping');
     Route::post('diet/dish', [Member\DietController::class, 'dish'])->name('diet.dish');
     Route::post('diet/reroll', [Member\DietController::class, 'reroll'])->name('diet.reroll');
     Route::post('diet/targets', [Member\DietController::class, 'targets'])->name('diet.targets');

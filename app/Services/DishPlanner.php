@@ -207,12 +207,12 @@ class DishPlanner
         return $t;
     }
 
-    /* ================================================================ totals, shopping list, group servings */
+    /* ================================================================ totals and group servings */
 
-    /** Totals for every meal and day, servings by food group, and the week's shopping list. Call after building and after any change. */
+    /** Totals for every meal and day, and servings by food group. Call after building and after any change. */
     public static function finish(array $plan): array
     {
-        $shop = []; $sum = ['kcal' => 0, 'protein' => 0.0, 'carbs' => 0.0, 'fat' => 0.0];
+        $sum = ['kcal' => 0, 'protein' => 0.0, 'carbs' => 0.0, 'fat' => 0.0];
         foreach ($plan['days'] as &$day) {
             $dt = ['kcal' => 0, 'protein' => 0.0, 'carbs' => 0.0, 'fat' => 0.0]; $groups = array_fill_keys(DietEngine::GROUPS, 0);
             foreach ($day['meals'] as &$m) {
@@ -221,8 +221,6 @@ class DishPlanner
                 foreach ($dt as $k => $_) $dt[$k] += $mt[$k];
                 foreach (array_merge($m['items'], $m['dessert']['items'] ?? []) as $it) {
                     $groups[$it['grp']] = ($groups[$it['grp']] ?? 0) + $it['servings'];
-                    $shop[$it['food_id']] ??= ['food_id' => $it['food_id'], 'name' => $it['name'], 'grp' => $it['grp'], 'servings' => 0.0, 'per' => $it['per'], 'unit' => $it['unit'], 'unit_plural' => $it['unit_plural'], 'gper' => $it['g'] ? $it['g'] / max(0.01, $it['servings']) : null];
-                    $shop[$it['food_id']]['servings'] += $it['servings'];
                 }
             }
             unset($m);
@@ -232,26 +230,7 @@ class DishPlanner
         unset($day);
         $n = max(1, count($plan['days']));
         $plan['avg_kcal'] = (int) round($sum['kcal'] / $n); $plan['avg_protein'] = (int) round($sum['protein'] / $n); $plan['avg_carbs'] = (int) round($sum['carbs'] / $n); $plan['avg_fat'] = (int) round($sum['fat'] / $n);
-        $order = array_flip(DietEngine::GROUPS);
-        $plan['shopping'] = array_values(collect($shop)->map(function ($s) {
-            $g = $s['gper'] ? (int) round($s['gper'] * $s['servings']) : null;
-            return $s + ['qty' => Food::measure($s['per'], $s['unit'], $s['unit_plural'], $s['servings']), 'grams' => $g, 'buy' => self::buyAmount($s, $g)];
-        })->sortBy([fn ($a, $b) => ($order[$a['grp']] ?? 99) <=> ($order[$b['grp']] ?? 99), fn ($a, $b) => strcmp($a['name'], $b['name'])])->all());
         return $plan;
-    }
-
-    /** What to buy, rounded to an amount a shop actually sells (nearest 50 g, or 100 g above half a kilo, or whole pieces). */
-    private static function buyAmount(array $s, ?int $g): string
-    {
-        if ($g) {
-            $r = $g >= 500 ? (int) (ceil($g / 100) * 100) : (int) (ceil($g / 50) * 50);
-            return $r >= 1000 ? rtrim(rtrim(number_format($r / 1000, 1), '0'), '.').' kg' : $r.' g';
-        }
-        if (in_array($s['unit'], ['egg', 'duck egg', 'piece', 'medium banana', 'medium mango', 'small apple', 'small orange', 'small pear', 'small guava', 'cob', 'date', 'medium potato'], true) || str_contains($s['unit'], 'medium') || str_contains($s['unit'], 'small')) {
-            $n = (int) ceil($s['per'] * $s['servings'] - 1e-9);
-            return $n.' '.($n === 1 ? $s['unit'] : ($s['unit_plural'] ?: $s['unit']));
-        }
-        return Food::measure($s['per'], $s['unit'], $s['unit_plural'], $s['servings']);
     }
 
     /* ================================================================ changes after the plan is made */

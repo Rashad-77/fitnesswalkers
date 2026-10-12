@@ -12,11 +12,33 @@ class HomeController extends Controller
     {
         $m = auth()->user()->member->load(['user', 'currentMembership.plan']);
         $plan = $m->approvedPlan();
-        $days = $m->workoutLogs()->where('logged_on', '>=', now()->subDays(28))->distinct()->count('logged_on');
-        $thisWeek = $m->workoutLogs()->where('logged_on', '>=', now()->startOfWeek())->distinct()->count('logged_on');
+        $weekStart = now()->startOfWeek();
+        $trained = $m->workoutLogs()->where('logged_on', '>=', $weekStart)->pluck('logged_on')->map(fn ($d) => $d->toDateString())->unique();
+        $week = collect(range(0, 6))->map(fn ($i) => ['label' => ['M', 'T', 'W', 'T', 'F', 'S', 'S'][$i], 'done' => $trained->contains($weekStart->copy()->addDays($i)->toDateString()),
+            'today' => $weekStart->copy()->addDays($i)->isToday(), 'future' => $weekStart->copy()->addDays($i)->isFuture()])->all();
+        $planDays = $plan ? $plan->items->pluck('day_no')->unique()->sort()->values() : collect();
+
+        // The next workout day: the one after the day of the last exercise logged, or Day 1.
+        $next = null;
+        if ($plan && $planDays->isNotEmpty()) {
+            $last = $m->workoutLogs()->latest('logged_on')->latest('id')->first();
+            $lastDay = $last ? $plan->items->firstWhere('exercise_id', $last->exercise_id)?->day_no : null;
+            $next = $lastDay ? ($planDays->first(fn ($d) => $d > $lastDay) ?? $planDays->first()) : $planDays->first();
+            $next = ['day' => $next, 'count' => $plan->items->where('day_no', $next)->count()];
+        }
+
+        $diet = $m->dietPlans()->where('active', true)->where('source', 'app')->first();
+        $meals = null;
+        if ($diet && ($diet->plan['format'] ?? '') === 'dishes' && empty($diet->plan['blocked'])) {
+            $d = $diet->plan['days'][now()->dayOfWeekIso - 1];
+            $meals = ['t' => $diet->plan['targets'], 'kcal' => $d['kcal'], 'water' => $diet->plan['water']['litres'] ?? null,
+                'list' => collect($d['meals'])->map(fn ($x) => ['slot' => $x['name'], 'name' => $x['dish'], 'kcal' => $x['kcal'] ?? null])->all()];
+        }
+        $logs = $m->bodyLogs()->latest('logged_on')->take(2)->get();
+
         return view('member.home', [
-            'm' => $m, 'plan' => $plan, 'planDays' => $plan ? $plan->items->pluck('day_no')->unique()->count() : 0,
-            'days28' => $days, 'thisWeek' => $thisWeek,
+            'm' => $m, 'plan' => $plan, 'next' => $next, 'week' => $week, 'weekDone' => $trained->count(), 'planDays' => $planDays->count(),
+            'meals' => $meals, 'hasDiet' => (bool) $diet, 'weight' => $logs->first()?->weight_kg, 'weightChange' => $logs->count() === 2 ? round($logs[0]->weight_kg - $logs[1]->weight_kg, 1) : null,
             'announcements' => Announcement::where('published_at', '<=', now())->orderByDesc('published_at')->take(2)->get(),
             'pendingReq' => $m->planRequests()->where('status', 'pending')->first(),
             'checkedIn' => $m->checkedInToday(), 'visits' => $m->visitsThisMonth(),

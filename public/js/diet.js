@@ -29,12 +29,18 @@
   }
   var asTotals = function (o) { return { kcal: o[1], protein: o[2], carbs: o[3], fat: o[4] }; };
 
+  var sheet = document.getElementById('sheet'), slot = document.getElementById('sheet-slot'), title = document.getElementById('sheet-title'), opener = null;
+  function closeSheet() { if (!sheet) return; sheet.hidden = true; slot.innerHTML = ''; document.body.classList.remove('sheet-open'); if (opener) try { opener.focus(); } catch (e) {} }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && sheet && !sheet.hidden) closeSheet(); });
+  if (sheet) sheet.addEventListener('click', function (e) { if (e.target.closest('[data-cancel]')) closeSheet(); });
+
   document.addEventListener('click', function (e) {
-    var b = e.target.closest('.chg[data-open]'); if (!b) return;
+    var b = e.target.closest('[data-open]'); if (!b || !sheet) return;
+    var more = b.closest('details'); if (more) more.open = false;
+    opener = b;
     var mi = +b.getAttribute('data-mi'), part = b.getAttribute('data-open'), meal = data.meals[mi];
-    var slot = document.querySelector('.panelslot[data-slot="' + mi + '"]');
-    if (slot.firstChild && slot.getAttribute('data-part') === part) { slot.innerHTML = ''; slot.removeAttribute('data-part'); return; }
-    document.querySelectorAll('.panelslot').forEach(function (s) { s.innerHTML = ''; s.removeAttribute('data-part'); });
+    title.textContent = (part === 'dessert' ? 'Dessert for ' : 'Change dish for ') + (meal.slot.indexOf('snack') === 0 ? 'snack' : meal.slot);
+    slot.innerHTML = '';
     var key = meal.slot.indexOf('snack') === 0 ? 'snack' : meal.slot;
     var list = part === 'dessert' ? data.dess : (data.opts[key] || []);
     var cur = part === 'dessert' ? meal.kd : meal.km, curId = part === 'dessert' ? meal.des : meal.dish, curScale = part === 'dessert' ? meal.dscale : meal.scale;
@@ -46,7 +52,7 @@
       d.o.forEach(function (o) { var e2 = error(sum(others, asTotals(o))) + 0.02 * Math.abs(o[0] - 1); if (!best || e2 < best.e) best = { e: e2, o: o }; });
       return { d: d, best: best };
     }).sort(function (a, c) { return a.best.e - c.best.e || a.d.n.localeCompare(c.d.n); });
-    if (!rows.length) { slot.innerHTML = '<p class="small muted">There is nothing else to choose from for this meal.</p>'; return; }
+    if (!rows.length) { slot.innerHTML = '<p class="small muted">There is nothing else to choose from for this meal.</p>'; sheet.hidden = false; return; }
     var starId = rows[0].d.id;
 
     var f = document.createElement('form');
@@ -56,7 +62,7 @@
       '<label class="chglab">Portion</label><select name="scale"></select>' +
       '<div class="dfit" aria-live="polite"></div>' +
       '<div class="row" style="gap:.5rem"><button class="btn sm">Use this</button><button type="button" class="btn ghost sm" data-cancel>Cancel</button></div>';
-    slot.appendChild(f); slot.setAttribute('data-part', part);
+    slot.appendChild(f); sheet.hidden = false; document.body.classList.add('sheet-open');
     var sd = f.querySelector('select[name=dish_id]'), sp = f.querySelector('select[name=scale]'), box = f.querySelector('.dfit');
 
     sd.innerHTML = rows.map(function (r) {
@@ -89,9 +95,9 @@
       var a = ev.target.closest('[data-pick]'), s = ev.target.closest('[data-scale]');
       if (a) { ev.preventDefault(); sd.value = a.getAttribute('data-pick'); var r = rows.filter(function (x) { return String(x.d.id) === sd.value; })[0]; portions(r.best.o[0]); show(); }
       if (s) { ev.preventDefault(); sp.value = s.getAttribute('data-scale'); show(); }
-      if (ev.target.closest('[data-cancel]')) { slot.innerHTML = ''; slot.removeAttribute('data-part'); }
     });
     var r0 = rows.filter(function (x) { return String(x.d.id) === sd.value; })[0];
     portions(curId ? curScale : r0.best.o[0]); show();
+    var first = f.querySelector('select'); if (first) first.focus();
   });
 })();

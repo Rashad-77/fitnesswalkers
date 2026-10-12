@@ -23,12 +23,14 @@ class DietController extends Controller
         $m = auth()->user()->member;
         $workout = $m->approvedPlan();
         $plan = $m->dietPlans()->where('active', true)->first();
-        $day = max(1, min(7, (int) $r->query('day', 1)));
-        $data = ['m' => $m, 'plan' => $plan, 'day' => $day, 'workout' => $workout, 'waiting' => $this->waiting($m)];
+        $day = max(1, min(7, (int) $r->query('day', now()->dayOfWeekIso)));
+        $tab = in_array($r->query('tab'), ['targets', 'checkin'], true) ? $r->query('tab') : 'meals';
+        $data = ['m' => $m, 'plan' => $plan, 'day' => $day, 'tab' => $tab, 'workout' => $workout, 'waiting' => $this->waiting($m)];
         if ($plan && $plan->source === 'app') {
             $p = $plan->plan;
             if (($p['format'] ?? '') === 'dishes' && empty($p['blocked'])) {
                 $in = $plan->inputs; $d = $p['days'][$day - 1];
+                if ($tab !== 'meals') $d = ['meals' => []];
                 $opts = []; $dess = DishPlanner::options($in, 'lunch', 'dessert');
                 foreach ($d['meals'] as $mt) { $k = str_starts_with($mt['slot'], 'snack') ? 'snack' : $mt['slot']; $opts[$k] ??= DishPlanner::options($in, $mt['slot'], $k === 'snack' ? 'snack' : 'meal'); }
                 $data += ['ui' => ['t' => $p['targets'], 'meals' => collect($d['meals'])->map(fn ($mt, $i) => ['mi' => $i, 'slot' => $mt['slot'], 'dish' => $mt['dish_id'], 'scale' => $mt['scale'],
@@ -81,14 +83,6 @@ class DietController extends Controller
         $m->dietPlans()->update(['active' => false]);
         DietPlan::create(['member_id' => $m->id, 'source' => 'app', 'title' => 'My meal plan', 'inputs' => $in, 'plan' => $plan, 'active' => true]);
         return redirect()->route('member.diet')->with('ok', 'Your meal plan is ready. Calories and nutrients are estimates.');
-    }
-
-    public function shopping()
-    {
-        $m = auth()->user()->member;
-        $plan = $m->dietPlans()->where('active', true)->where('source', 'app')->first();
-        abort_unless($plan && ($plan->plan['format'] ?? '') === 'dishes', 404);
-        return view('member.shopping', ['plan' => $plan, 'm' => $m]);
     }
 
     /** Change a dish, its portion or its dessert for one meal. */
@@ -152,7 +146,7 @@ class DietController extends Controller
         $d = $r->validate(['weight' => 'required|numeric|between:25,300', 'followed' => 'required|in:most,some,little', 'hunger' => 'required|in:low,ok,high', 'energy' => 'required|in:low,ok,high', 'note' => 'nullable|max:300']);
         if (! DietCheckins::isDue($dp) && DietCheckin::where('diet_plan_id', $dp->id)->whereDate('week_of', today())->exists()) return back()->with('warn', 'You already checked in today.');
         $c = DietCheckins::record($m, $dp, $d);
-        return redirect()->route('member.diet')->with($c->action === 'hold' ? 'warn' : 'ok', $c->message);
+        return redirect()->route('member.diet', ['tab' => 'checkin'])->with($c->action === 'hold' ? 'warn' : 'ok', $c->message);
     }
 
     /* ------------------------------------------------------------------ helpers */

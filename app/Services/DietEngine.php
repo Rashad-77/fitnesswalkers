@@ -13,7 +13,8 @@ use Illuminate\Support\Collection;
  *   3. Servings per group    the daily servings in Sri Lanka's Food Based Dietary Guidelines (Ministry of Health, 3rd edition 2021),
  *                            which run from 1,600 kcal (a sedentary woman) to 2,600 kcal (a very active man), scaled to this person
  *   4. Fit to the person     eating pattern (vegetarian types), allergies, foods avoided, BMI, and extra protein for people who train
- *   5. Real foods            servings are turned into foods from the Sri Lankan catalogue, in household measures, spread over meals
+ *
+ *   The week of dishes is built from these numbers by DishPlanner.
  *
  * Calories and protein are ESTIMATES (typical values per serving) and are shown as "about". This is a general guide, not medical advice.
  */
@@ -30,16 +31,6 @@ class DietEngine
 
     /** The guideline's range of servings a day: [low, high]. */
     public const RANGE = ['cereal' => [8, 13], 'veg' => [3, 5], 'fruit' => [2, 3], 'pulse' => [3, 5], 'protein' => [2, 4], 'egg' => [1, 1], 'dairy' => [1, 1], 'nuts' => [2, 2], 'coconut' => [3, 6], 'oil' => [1, 3]];
-
-    /** Which meal gets the next serving of each group, in order of preference. The guideline spreads rice over the three main meals and puts protein with lunch and dinner. */
-    private const PRIORITY = [
-        'cereal' => ['lunch', 'dinner', 'breakfast'], 'protein' => ['lunch', 'dinner'], 'egg' => ['breakfast', 'snack_pm', 'lunch'],
-        'pulse' => ['lunch', 'dinner', 'breakfast', 'snack_pm', 'snack_am'], 'veg' => ['lunch', 'dinner'], 'fruit' => ['breakfast', 'snack_pm', 'snack_am', 'dinner', 'lunch'],
-        'dairy' => ['snack_am', 'breakfast', 'snack_pm'], 'nuts' => ['snack_am', 'snack_pm', 'breakfast', 'dinner'],
-        'coconut' => ['lunch', 'dinner', 'breakfast'], 'oil' => ['lunch', 'dinner'],
-    ];
-
-    /* ============================================================== 1. safety */
 
     /** @return string[] reasons this person must NOT get an app-made plan (empty = fine) */
     public static function safetyIssues(array $in): array
@@ -115,7 +106,7 @@ class DietEngine
 
     /* ============================================================== 3 + 4. servings per group */
 
-    /** Foods this person can be given: on sale, right eating pattern, no allergens, nothing they avoid. Liked foods are flagged. */
+    /** Foods this person can be given: on sale, right eating pattern, no allergens, nothing they avoid. */
     public static function eligible(array $in): Collection
     {
         $diets = match ($in['pattern'] ?? 'everything') {
@@ -123,20 +114,9 @@ class DietEngine
             default => ['vegan', 'dairy', 'egg', 'meat'],
         };
         $allergies = (array) ($in['allergies'] ?? []);
-        $dislikes = array_map('intval', (array) ($in['dislikes'] ?? []));
-        $likes = array_map('intval', (array) ($in['likes'] ?? []));
         $tags = array_values(array_filter([! empty($in['no_beef']) ? 'beef' : null, ! empty($in['no_pork']) ? 'pork' : null]));
         return Food::where('active', true)->whereIn('diet', $diets)->get()
-            ->filter(fn ($f) => ! array_intersect($f->allergenList(), $allergies) && ! in_array($f->id, $dislikes, true) && ! array_intersect($f->tagList(), $tags))
-            ->each(fn ($f) => $f->setAttribute('liked', in_array($f->id, $likes, true)))
-            ->each(function ($f) use ($in) {                    // foods the person says they usually eat at breakfast, lunch or dinner
-                $types = [];
-                foreach (['breakfast' => 'breakfast', 'lunch' => 'main', 'dinner' => 'main'] as $slot => $type) {
-                    if (in_array($f->id, array_map('intval', (array) ($in['usuals'][$slot] ?? [])), true)) $types[] = $type;
-                }
-                $f->setAttribute('usual_types', array_values(array_unique($types)));
-                if ($types) $f->setAttribute('liked', true);       // usual foods are kept when the plan is balanced to the calorie target
-            })
+            ->filter(fn ($f) => ! array_intersect($f->allergenList(), $allergies) && ! array_intersect($f->tagList(), $tags))
             ->values();
     }
 
@@ -232,262 +212,5 @@ class DietEngine
         $t = self::targets($in);
         if ($issues) return ['blocked' => true, 'issues' => $issues, 'targets' => $t];
         return ['blocked' => false, 'targets' => $t] + self::servings($in, $t, self::eligible($in));
-    }
-
-    /* ============================================================== 5. foods and meals */
-
-    private static function slots(int $meals): array
-    {
-        return match ($meals) { 3 => ['breakfast', 'lunch', 'dinner'], 4 => ['breakfast', 'lunch', 'snack_pm', 'dinner'], default => ['breakfast', 'snack_am', 'lunch', 'snack_pm', 'dinner'] };
-    }
-
-    /** @return array<string,array<int,array>> slot => list of needs [group, sub|null, servings] */
-    private static function allocate(array $servings, array $slots, int $day): array
-    {
-        $out = array_fill_keys($slots, []);
-        $put = function (string $slot, string $g, ?string $sub) use (&$out) {
-            foreach ($out[$slot] as $k => $need) {
-                if ($need[0] === $g && $need[1] === $sub) { $out[$slot][$k][2]++; return; }
-            }
-            $out[$slot][] = [$g, $sub, 1];
-        };
-        foreach (self::GROUPS as $g) {
-            $n = (int) ($servings[$g] ?? 0);
-            if ($n <= 0) continue;
-            $prio = array_values(array_filter(self::PRIORITY[$g], fn ($sl) => in_array($sl, $slots, true))) ?: [$slots[0]];
-            if ($g === 'veg') {                                 // each day: a green leaf (two on big days), a vitamin A vegetable, the rest others
-                $leaf = $n >= 5 ? 2 : 1; $vita = ($n >= 4 || $day % 2 === 0) ? 1 : 0;
-                $types = array_merge(array_fill(0, $leaf, 'leaf'), array_fill(0, $vita, 'vita'), array_fill(0, max(0, $n - $leaf - $vita), 'other'));
-                foreach ($types as $i => $type) $put($prio[($i + $day) % count($prio)], 'veg', $type);
-                continue;
-            }
-            for ($i = 0; $i < $n; $i++) $put($prio[$i % count($prio)], $g, null);
-        }
-        return $out;
-    }
-
-    private static function hash01(int $seed, int $id): float
-    {
-        $v = sin($seed * 12.9898 + $id * 78.233) * 43758.5453;
-        return $v - floor($v);
-    }
-
-    /** Chooses one food from a pool: favours liked foods, whole grains and fish, avoids repeats, and varies from day to day. */
-    private static function pick(Collection $pool, string $type, int $seed, array $avoid, string $group): ?Food
-    {
-        $c = $pool->filter(fn ($f) => in_array($type, $f->mealTagList(), true));
-        if ($c->isEmpty()) $c = $pool;
-        $subW = $group === 'protein' ? ['fish' => 2.0, 'poultry' => 1.4, 'dried' => 1.0, 'shellfish' => .7, 'red' => .5] : [];
-        $best = null; $bestScore = -1;
-        foreach ($c as $f) {
-            $w = 1.0;
-            if ($f->getAttribute('liked')) $w *= 4;
-            if (in_array($type, (array) $f->getAttribute('usual_types'), true)) $w *= 2;
-            if ($f->whole_grain) $w *= 1.7;
-            if ($f->limited) $w *= .2;
-            $w *= $subW[$f->sub] ?? 1;
-            if (in_array($f->id, $avoid, true)) $w *= .12;
-            $score = $w * (0.4 + self::hash01($seed, $f->id));
-            if ($score > $bestScore) { $bestScore = $score; $best = $f; }
-        }
-        return $best;
-    }
-
-    public static function item(Food $f, int $servings): array
-    {
-        return ['food_id' => $f->id, 'name' => $f->name, 'local' => $f->local_name, 'grp' => $f->grp, 'sub' => $f->sub, 'servings' => $servings,
-            'qty' => $f->qty($servings), 'kcal' => $f->kcalFor($servings), 'protein' => $f->proteinFor($servings),
-            'per' => $f->per_serving, 'unit' => $f->unit, 'unit_plural' => $f->unit_plural, 'g' => $f->serving_g, 'whole' => $f->whole_grain];
-    }
-
-    /** Turns one meal's needs ("2 servings of cereal, 1 of fish...") into foods. */
-    private static function fillMeal(array $needs, string $slot, Collection $foods, int $seed, array $avoid): array
-    {
-        $type = str_starts_with($slot, 'snack') ? 'snack' : ($slot === 'breakfast' ? 'breakfast' : 'main');
-        $items = []; $usedHere = [];
-        foreach ($needs as $ni => [$g, $sub, $n]) {
-            $pool = $foods->where('grp', $g);
-            if ($sub !== null && $pool->where('sub', $sub)->isNotEmpty()) $pool = $pool->where('sub', $sub);
-            if ($pool->isEmpty() || $n <= 0) continue;
-            $chunks = in_array($g, ['veg', 'fruit'], true) ? array_fill(0, $n, 1) : ($g === 'pulse' && $n >= 3 ? [$n - 1, 1] : [$n]);
-            foreach ($chunks as $ci => $cs) {
-                $f = self::pick($pool, $type, $seed + $ni * 17 + $ci * 5, array_merge($avoid, $usedHere), $g);
-                if (! $f) continue;
-                $usedHere[] = $f->id;
-                foreach ($items as $k => $it) {                      // the same food twice in a meal is one bigger portion
-                    if ($it['food_id'] === $f->id) { $items[$k] = self::item($f, $it['servings'] + $cs); continue 2; }
-                }
-                $items[] = self::item($f, $cs);
-            }
-        }
-        return $items;
-    }
-
-    /** The guideline asks for at least half of the rice and cereals to be whole grain or less polished. Swap refined foods the person did not ask for. */
-    private static function ensureWholeGrain(array $meals, Collection $foods): array
-    {
-        $total = $whole = 0;
-        foreach ($meals as $m) foreach ($m['items'] as $it) if ($it['grp'] === 'cereal') { $total += $it['servings']; if ($it['whole']) $whole += $it['servings']; }
-        if ($total === 0 || $whole * 2 >= $total) return $meals;
-        $wholeFoods = $foods->where('grp', 'cereal')->where('whole_grain', true);
-        foreach ($meals as $mi => $m) {
-            foreach ($m['items'] as $ii => $it) {
-                if ($it['grp'] !== 'cereal' || $it['whole'] || $whole * 2 >= $total) continue;
-                $orig = $foods->firstWhere('id', $it['food_id']);
-                if ($orig && $orig->getAttribute('liked')) continue;
-                $type = str_starts_with($m['slot'], 'snack') ? 'snack' : ($m['slot'] === 'breakfast' ? 'breakfast' : 'main');
-                $same = $wholeFoods->where('sub', $it['sub']);
-                $swap = self::pick($same->isNotEmpty() ? $same : $wholeFoods, $type, 7 + $mi + $ii, [], 'cereal');
-                if (! $swap) continue;
-                $meals[$mi]['items'][$ii] = self::item($swap, $it['servings']);
-                $whole += $it['servings'];
-            }
-        }
-        return $meals;
-    }
-
-    private static function buildDay(array $servings, array $slots, Collection $foods, int $di, int $attempt, array $prevIds, int $target): array
-    {
-        $alloc = self::allocate($servings, $slots, $di);
-        $meals = []; $today = [];
-        foreach ($slots as $si => $slot) {
-            $items = self::fillMeal($alloc[$slot], $slot, $foods, $di * 1000 + $si * 100 + $attempt * 7919, array_merge($prevIds, $today));
-            foreach ($items as $it) $today[] = $it['food_id'];
-            $meals[] = ['slot' => $slot, 'name' => self::SLOT_NAMES[$slot], 'needs' => $alloc[$slot], 'items' => $items];
-        }
-        return ['day' => $di + 1, 'meals' => self::balanceDay(self::ensureWholeGrain($meals, $foods), $foods, $target)];
-    }
-
-    /**
-     * Different foods in the same group carry different energy (a cashew serving is not a pumpkin seed serving), so days can drift.
-     * Swap foods inside their group, never changing the servings, until the day is within about 8% of the target.
-     */
-    private static function balanceDay(array $meals, Collection $foods, int $target): array
-    {
-        $kcal = fn () => array_sum(array_map(fn ($m) => array_sum(array_column($m['items'], 'kcal')), $meals));
-        for ($i = 0; $i < 8; $i++) {
-            $now = $kcal();
-            if (abs($now - $target) <= $target * 0.08) break;
-            $up = $now < $target;                                        // need more energy, or less?
-            $best = null; $bestGain = 0;
-            foreach ($meals as $mi => $m) {
-                $type = str_starts_with($m['slot'], 'snack') ? 'snack' : ($m['slot'] === 'breakfast' ? 'breakfast' : 'main');
-                foreach ($m['items'] as $ii => $it) {
-                    if (in_array($it['grp'], ['veg', 'cereal'], true)) continue;     // vegetables and rice stay as the guideline sets them
-                    $cur = $foods->firstWhere('id', $it['food_id']);
-                    if (! $cur || $cur->getAttribute('liked')) continue;
-                    $used = array_column($m['items'], 'food_id');
-                    foreach ($foods->where('grp', $it['grp']) as $alt) {
-                        if (in_array($alt->id, $used, true) || ! in_array($type, $alt->mealTagList(), true) || ($it['sub'] && $alt->sub !== $it['sub'] && $it['grp'] === 'protein')) continue;
-                        $delta = ($alt->kcal_serving - $cur->kcal_serving) * $it['servings'];
-                        $gain = $up ? $delta : -$delta;
-                        if ($gain > $bestGain && $gain <= abs($target - $now) * 1.3) { $bestGain = $gain; $best = [$mi, $ii, $alt, $it['servings']]; }
-                    }
-                }
-            }
-            if (! $best) break;
-            [$mi, $ii, $alt, $n] = $best;
-            $meals[$mi]['items'][$ii] = self::item($alt, $n);
-        }
-        return $meals;
-    }
-
-    /** Build the whole week. */
-    public static function generate(array $in): array
-    {
-        $sum = self::summary($in);
-        if ($sum['blocked']) return ['blocked' => true, 'issues' => $sum['issues']];
-        $foods = self::eligible($in);
-        $slots = self::slots((int) ($in['meals'] ?? 3));
-        $days = []; $prev = [];
-        for ($d = 0; $d < 7; $d++) {
-            $day = self::buildDay($sum['servings'], $slots, $foods, $d, 0, $prev, $sum['targets']['kcal']);
-            $prev = collect($day['meals'])->flatMap(fn ($m) => array_column($m['items'], 'food_id'))->all();
-            $days[] = $day;
-        }
-        return self::finish(['blocked' => false, 'targets' => $sum['targets'], 'servings' => $sum['servings'], 'est' => $sum['est'], 'goal' => $in['goal'] ?? 'maintain', 'pattern' => $in['pattern'] ?? 'everything',
-            'meals_per_day' => count($slots), 'notes' => $sum['notes'], 'warnings' => $sum['warnings'], 'days' => $days]);
-    }
-
-    /** Totals for every meal and day, and the week's shopping list. Called after building and after any swap. */
-    public static function finish(array $plan): array
-    {
-        $shop = []; $kc = $pr = 0;
-        foreach ($plan['days'] as &$day) {
-            $dk = 0; $dp = 0.0; $groups = array_fill_keys(self::GROUPS, 0);
-            foreach ($day['meals'] as &$meal) {
-                $meal['kcal'] = (int) array_sum(array_column($meal['items'], 'kcal'));
-                $meal['protein'] = round(array_sum(array_column($meal['items'], 'protein')), 1);
-                $dk += $meal['kcal']; $dp += $meal['protein'];
-                foreach ($meal['items'] as $it) {
-                    $groups[$it['grp']] += $it['servings'];
-                    $shop[$it['food_id']] ??= ['food_id' => $it['food_id'], 'name' => $it['name'], 'local' => $it['local'] ?? null, 'grp' => $it['grp'], 'servings' => 0,
-                        'per' => $it['per'], 'unit' => $it['unit'], 'unit_plural' => $it['unit_plural'], 'g' => $it['g']];
-                    $shop[$it['food_id']]['servings'] += $it['servings'];
-                }
-            }
-            unset($meal);
-            $day['kcal'] = $dk; $day['protein'] = (int) round($dp); $day['groups'] = $groups;
-            $kc += $dk; $pr += $dp;
-        }
-        unset($day);
-        $n = max(1, count($plan['days']));
-        $plan['avg_kcal'] = (int) round($kc / $n); $plan['avg_protein'] = (int) round($pr / $n);
-        $order = array_flip(self::GROUPS);
-        $plan['shopping'] = array_values(collect($shop)->map(fn ($s) => $s + [
-            'qty' => Food::measure($s['per'], $s['unit'], $s['unit_plural'], $s['servings']), 'grams' => $s['g'] ? (int) round($s['g'] * $s['servings']) : null,
-        ])->sortBy([fn ($a, $b) => ($order[$a['grp']] ?? 99) <=> ($order[$b['grp']] ?? 99), fn ($a, $b) => strcmp($a['name'], $b['name'])])->all());
-        return $plan;
-    }
-
-    /* ============================================================== changes after the plan is made */
-
-    /** Re-roll one meal with different foods (same servings). */
-    public static function swapMeal(array $in, array $plan, int $di, int $mi): array
-    {
-        $foods = self::eligible($in);
-        $meal = $plan['days'][$di]['meals'][$mi];
-        $attempt = (int) ($meal['swaps'] ?? 0) + 1;
-        $items = self::fillMeal($meal['needs'], $meal['slot'], $foods, $di * 1000 + $mi * 100 + $attempt * 7919 + 3, array_column($meal['items'], 'food_id'));
-        if ($items) {
-            $meal['items'] = $items; $meal['swaps'] = $attempt; unset($meal['edited']);
-            $plan['days'][$di]['meals'][$mi] = $meal;
-        }
-        return self::finish($plan);
-    }
-
-    public static function replanDay(array $in, array $plan, int $di): array
-    {
-        foreach (array_keys($plan['days'][$di]['meals']) as $mi) $plan = self::swapMeal($in, $plan, $di, $mi);
-        return $plan;
-    }
-
-    /** Other foods this person could eat instead of one item: the same group (and the same kind of vegetable). */
-    public static function alternatives(array $in, array $item): Collection
-    {
-        $pool = self::eligible($in)->where('grp', $item['grp'])->reject(fn ($f) => $f->id === $item['food_id']);
-        if ($item['grp'] === 'veg' && $pool->where('sub', $item['sub'])->isNotEmpty()) $pool = $pool->where('sub', $item['sub']);
-        return $pool->sortBy('name')->values();
-    }
-
-    /** Replace one food with another from the same group. The servings stay the same. */
-    public static function swapItem(array $in, array $plan, int $di, int $mi, int $ii, int $foodId): array
-    {
-        $item = $plan['days'][$di]['meals'][$mi]['items'][$ii] ?? abort(404);
-        $food = self::eligible($in)->firstWhere('id', $foodId);
-        abort_unless($food && $food->grp === $item['grp'], 404);
-        $plan['days'][$di]['meals'][$mi]['items'][$ii] = self::item($food, $item['servings']);
-        $plan['days'][$di]['meals'][$mi]['edited'] = true;
-        return self::finish($plan);
-    }
-
-    /** Eat more or less of one food: the same food, a different number of servings (1 to 8). */
-    public static function resizeItem(array $plan, int $di, int $mi, int $ii, int $servings): array
-    {
-        $it = $plan['days'][$di]['meals'][$mi]['items'][$ii] ?? abort(404);
-        $food = Food::find($it['food_id']) ?? abort(404);
-        $plan['days'][$di]['meals'][$mi]['items'][$ii] = self::item($food, max(1, min(8, $servings)));
-        $plan['days'][$di]['meals'][$mi]['edited'] = true;
-        return self::finish($plan);
     }
 }

@@ -48,7 +48,7 @@ class MealPlanTest extends TestCase
         }
         $names = collect($plan['days'])->flatMap(fn ($d) => collect($d['meals'])->pluck('dish_id'))->unique();
         $this->assertGreaterThanOrEqual(10, $names->count(), 'the week is not the same few dishes');
-        $this->assertNotEmpty($plan['shopping']);
+        $this->assertArrayNotHasKey('shopping', $plan);
         $this->assertGreaterThan(0, $t['carbs']);
         $this->assertGreaterThan(0, $t['fat']);
     }
@@ -99,7 +99,9 @@ class MealPlanTest extends TestCase
         $this->assertSame($u->member->approvedPlan()->name, $plan->plan['workout']['name']);
         $this->assertSame($plan->plan['workout']['days'], $plan->inputs['train_days'], 'workout days come from the workout plan, not the survey');
         $this->assertNotEmpty($plan->plan['water']);
-        $this->get(route('member.diet'))->assertOk()->assertSee('Main course')->assertSee('Water')->assertSee('Built around your workout plan')->assertSee('Weekly check-in');
+        $this->get(route('member.diet'))->assertOk()->assertSee('Main course')->assertSee('Water')->assertSee('Change dish');
+        $this->get(route('member.diet', ['tab' => 'targets']))->assertOk()->assertSee('Built around your workout plan')->assertSee('Adjust my targets');
+        $this->get(route('member.diet', ['tab' => 'checkin']))->assertOk()->assertSee('Weekly check-in');
     }
 
     public function test_survey_needs_the_tick_box_and_unsafe_answers_are_refused(): void
@@ -130,7 +132,7 @@ class MealPlanTest extends TestCase
         $this->post(route('member.diet.dish'), ['day' => 0, 'meal' => 0, 'dish_id' => $other->id])->assertRedirect();
         $this->assertSame($other->id, $dp->fresh()->plan['days'][0]['meals'][0]['dish_id']);
         $this->post(route('member.diet.reroll'), ['day' => 1, 'meal' => 1])->assertRedirect();
-        $this->get(route('member.diet.shopping'))->assertOk()->assertSee('Shopping list');
+        $this->assertSame(404, $this->get('/app/diet/shopping')->status());
     }
 
     public function test_options_tell_how_each_dish_fits_the_day(): void
@@ -184,7 +186,7 @@ class MealPlanTest extends TestCase
     {
         $dp = $this->plan();
         $kcal = $dp->plan['targets']['kcal'];
-        $this->post(route('member.diet.checkin'), ['weight' => 78, 'followed' => 'most', 'hunger' => 'ok', 'energy' => 'ok'])->assertRedirect(route('member.diet'));
+        $this->post(route('member.diet.checkin'), ['weight' => 78, 'followed' => 'most', 'hunger' => 'ok', 'energy' => 'ok'])->assertRedirect(route('member.diet', ['tab' => 'checkin']));
         $c = DietCheckin::where('diet_plan_id', $dp->id)->latest('id')->first();
         $this->assertNotNull($c);
         $this->assertSame($kcal, $c->kcal_before);

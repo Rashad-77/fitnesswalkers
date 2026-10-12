@@ -16,7 +16,7 @@ No payments happen on the site: the owner records them.
 **Settings** (gym profile, packages, check-in QR, my account, data export, activity log, sample data).
 
 **Member (/app):** Home (check-in status, membership countdown), Workout (plan, logging, exercise guides, request a plan),
-Food (daily calorie, protein, carb and fat targets the member can adjust within safe limits, a week of Sri Lankan dishes with amounts, swap any dish and see how it fits the day, a weekly check-in that nudges calories, shopping list), Progress (weight, BMI, measurements, goals) and Account
+Food (daily calorie, protein, carb and fat targets the member can adjust within safe limits, a week of Sri Lankan dishes with amounts, swap any dish and see how it fits the day, a weekly check-in that nudges calories), Progress (weight, BMI, measurements, goals) and Account
 (membership, renewal request, announcements, password). Members check in by scanning the QR poster at the gym entrance.
 
 **Public website:** Home, About us, Pricing, Contact us (with a membership enquiry form), Privacy policy, Terms and conditions.

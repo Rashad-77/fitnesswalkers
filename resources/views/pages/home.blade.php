@@ -109,7 +109,7 @@
     <ul class="ticks" data-reveal>
       <li>@include('partials.i', ['n' => 'check'])<span><b>Know where you stand</b>Your membership dates and check-in status at a glance.</span></li>
       <li>@include('partials.i', ['n' => 'check'])<span><b>Follow your workout</b>Step-by-step exercise guides, with sets and reps to log.</span></li>
-      <li>@include('partials.i', ['n' => 'check'])<span><b>Eat with a plan</b>Seven days of Sri Lankan meals and a shopping list you can send on WhatsApp.</span></li>
+      <li>@include('partials.i', ['n' => 'check'])<span><b>Eat with a plan</b>Seven days of Sri Lankan meals with exact amounts, matched to your calories and your workouts.</span></li>
       <li>@include('partials.i', ['n' => 'check'])<span><b>Watch it work</b>Charts for weight, measurements and your strength.</span></li>
     </ul>
     <a class="btn" href="{{ route('login') }}" data-reveal>Member sign in @include('partials.i', ['n' => 'arrow'])</a>
