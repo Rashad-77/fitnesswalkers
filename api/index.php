@@ -14,6 +14,7 @@ define('LARAVEL_START', microtime(true));
 $defaults = [
     'APP_ENV' => 'production', 'APP_DEBUG' => 'false', 'LOG_CHANNEL' => 'stderr', 'QUEUE_CONNECTION' => 'sync',
     'DB_CONNECTION' => 'sqlite', 'DB_DATABASE' => '/tmp/database.sqlite',
+    'SHOW_ERRORS' => '1',   // demo only: show a short error message instead of a blank 500. Set SHOW_ERRORS=0 in Vercel to hide it.
     'SESSION_DRIVER' => 'cookie', 'CACHE_STORE' => 'array',   // no shared storage between servers, so keep these out of the database
 ];
 foreach ($defaults as $key => $value) {
@@ -21,6 +22,21 @@ foreach ($defaults as $key => $value) {
 }
 if (getenv('DB_CONNECTION') === 'sqlite' && getenv('DB_DATABASE') === '/tmp/database.sqlite' && ! file_exists('/tmp/database.sqlite')) {
     copy(__DIR__.'/../database/demo.sqlite', '/tmp/database.sqlite');
+}
+
+// Say what is wrong, in plain words, instead of a blank 500 page.
+$problems = [];
+if (! getenv('APP_KEY')) $problems[] = 'APP_KEY is not set. Add it in Vercel: Settings > Environment Variables, then redeploy.';
+if (PHP_VERSION_ID < 80300) $problems[] = 'PHP '.PHP_VERSION.' is too old; this app needs PHP 8.3 or newer.';
+foreach (['mbstring', 'openssl', 'pdo', 'ctype', 'tokenizer', 'fileinfo'] as $ext) {
+    if (! extension_loaded($ext)) $problems[] = "The PHP extension \"$ext\" is missing on this server.";
+}
+if (getenv('DB_CONNECTION') === 'sqlite' && ! extension_loaded('pdo_sqlite')) $problems[] = 'The PHP extension "pdo_sqlite" is missing on this server, so the demo database cannot be read.';
+if (! is_file(__DIR__.'/../vendor/autoload.php')) $problems[] = 'The vendor folder is missing: composer install did not run during the build.';
+if ($problems) {
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=utf-8');
+    exit("Setup problem:\n- ".implode("\n- ", $problems)."\n\nPHP ".PHP_VERSION."\n");
 }
 
 $storage = '/tmp/storage';
@@ -33,4 +49,11 @@ require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
 $app->useStoragePath($storage);
 
-$app->handleRequest(Request::capture());
+try {
+    $app->handleRequest(Request::capture());
+} catch (Throwable $e) {
+    error_log((string) $e);
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=utf-8');
+    exit(getenv('SHOW_ERRORS') === '1' ? 'Error: '.get_class($e).': '.$e->getMessage() : 'Server error.');
+}
