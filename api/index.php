@@ -12,6 +12,7 @@ define('LARAVEL_START', microtime(true));
 // (they vanish when the server restarts) and are not shared between servers. To use a real database instead,
 // set DB_CONNECTION and the DB_* variables in Vercel; those win over these defaults.
 $defaults = [
+    'VERCEL' => '1',   // this file only runs on Vercel; the app checks this flag to trust the proxy and avoid writing to disk
     'APP_ENV' => 'production', 'APP_DEBUG' => 'false', 'LOG_CHANNEL' => 'stderr', 'QUEUE_CONNECTION' => 'sync',
     'DB_CONNECTION' => 'sqlite', 'DB_DATABASE' => '/tmp/database.sqlite',
     // Laravel keeps small cache files in bootstrap/cache, which is read-only on Vercel, so they go to /tmp.
@@ -46,6 +47,24 @@ if ($problems) {
 $storage = '/tmp/storage';
 foreach (['framework/cache/data', 'framework/sessions', 'framework/views', 'logs', 'bootstrap-cache'] as $dir) {
     is_dir("$storage/$dir") || mkdir("$storage/$dir", 0755, true);
+}
+
+// Behind Vercel's proxy the request arrives as plain http; tell Laravel it was really https so links and cookies use https.
+if (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') $_SERVER['HTTPS'] = 'on';
+
+// Safety net: serve files from public/ (css, js, images) ourselves in case Vercel hands them to PHP instead of serving them directly.
+$public = realpath(__DIR__.'/../public');
+$asset = $public ? realpath($public.rawurldecode((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH))) : false;
+if ($asset && is_file($asset) && str_starts_with($asset, $public.DIRECTORY_SEPARATOR) && ! preg_match('/(^|\/)\.|\.php$/i', substr($asset, strlen($public)))) {
+    $types = ['css' => 'text/css', 'js' => 'application/javascript', 'json' => 'application/json', 'webmanifest' => 'application/manifest+json',
+        'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'svg' => 'image/svg+xml', 'webp' => 'image/webp',
+        'ico' => 'image/x-icon', 'woff' => 'font/woff', 'woff2' => 'font/woff2', 'ttf' => 'font/ttf', 'mp4' => 'video/mp4', 'webm' => 'video/webm', 'txt' => 'text/plain'];
+    $ext = strtolower(pathinfo($asset, PATHINFO_EXTENSION));
+    header('Content-Type: '.($types[$ext] ?? 'application/octet-stream'));
+    header('Cache-Control: public, max-age=3600');
+    header('Content-Length: '.filesize($asset));
+    readfile($asset);
+    exit;
 }
 
 require __DIR__.'/../vendor/autoload.php';

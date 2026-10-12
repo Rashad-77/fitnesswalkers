@@ -1,9 +1,9 @@
 # Keep local and server-only files out of the Vercel upload.
 # public/index.php is left out on purpose: Vercel would serve it as plain text. api/index.php is the entry point.
 public/index.php
-deploy
-tests
-vendor
+/deploy
+/tests
+/vendor
 node_modules
 .env
 .env.*
