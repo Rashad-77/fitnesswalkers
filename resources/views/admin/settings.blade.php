@@ -12,5 +12,14 @@
   <button class="btn">Save</button>
 </form>
 
+<div class="card" id="photos"><h2>Website photos</h2>
+  <p class="small muted">The public home page has spots for your photos. Put a photo in the <code>public/img/gym</code> folder, named as below (jpg, png or webp), and it appears on the website by itself. Keep each file under about 400 KB.</p>
+  @php $slots = gym_slots(); $have = collect($slots)->filter(fn ($v, $k) => gym_img($k))->count(); @endphp
+  <p class="small"><b>{{ $have }} of {{ count($slots) }}</b> spots have a photo.</p>
+  <div class="tw"><table><tr><th>Spot</th><th>File name</th><th>Shape</th><th></th></tr>
+    @foreach ($slots as $k => [$what, $shape])
+      <tr><td>{{ $what }}</td><td><code>{{ $k }}.jpg</code></td><td class="small muted">{{ $shape }}</td><td>{!! gym_img($k) ? '<span class="b done">added</span>' : '<span class="b pending">empty</span>' !!}</td></tr>
+    @endforeach
+  </table></div></div>
 </div>
 @endsection

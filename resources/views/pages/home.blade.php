@@ -7,7 +7,7 @@
   $words = preg_split('/\s+/', $tag); $last = array_pop($words);
   $digits = preg_replace('/\D+/', '', (string) $S('gym_phone'));
   $about = array_values(array_filter(preg_split('/\n\s*\n/', (string) $S('about_text', '')), 'strlen'));
-  $owner = $S('owner_name', 'The owner');
+  $owner = $S('owner_name', 'The owner'); $gymName = $S('gym_name', 'FitnessWalkers');
 @endphp
 
 <section class="phero">
@@ -27,27 +27,11 @@
         <div>@include('partials.i', ['n' => 'phone'])<p style="margin:0"><b>Track on your phone</b><span>Dates, workouts, progress</span></p></div>
       </div>
     </div>
-
-    <div class="devices" aria-hidden="true" data-reveal style="--d:.2s">
-      <div class="phone p2"><div class="scr">
-        <div class="mk-h">Progress<b>Your weight</b></div>
-        <svg class="mk-svg" viewBox="0 0 200 110" fill="none"><defs><linearGradient id="gA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8f03c" stop-opacity=".35"/><stop offset="1" stop-color="#b8f03c" stop-opacity="0"/></linearGradient></defs>
-          <path d="M0 22H200M0 55H200M0 88H200" stroke="#ffffff" stroke-opacity=".08"/>
-          <path d="M5 30C30 34 45 44 70 48S110 62 135 66 175 78 195 84V110H5Z" fill="url(#gA)"/>
-          <path d="M5 30C30 34 45 44 70 48S110 62 135 66 175 78 195 84" stroke="#b8f03c" stroke-width="3" stroke-linecap="round"/><circle cx="195" cy="84" r="5" fill="#b8f03c"/></svg>
-        <div class="mk-card"><div class="mk-big">-4.2 <small>kg this quarter</small></div><div class="mk-bar"><i style="width:82%"></i></div></div>
-        <div class="mk-row">Goal weight<span>68 kg</span></div><div class="mk-row">Consistency<span class="mk-chip">12 visits</span></div>
-        <div class="mk-tabs"><span>Home</span><span>Workout</span><span>Food</span><span class="on">Progress</span></div>
-      </div></div>
-      <div class="phone p1"><div class="scr">
-        <div class="mk-h">Welcome,<b>Kasun</b></div>
-        <div class="mk-card"><div class="mk-big">18 <small>days left</small></div><div class="mk-bar"><i></i></div></div>
-        <div class="mk-card" style="margin-top:.7rem"><div style="font-size:.74rem;color:#8fb09f">Today &middot; Upper body</div>
-          <div class="mk-row">Bench press<span>3 &times; 10</span></div><div class="mk-row">Seated row<span>3 &times; 12</span></div><div class="mk-row">Shoulder press<span>3 &times; 10</span></div></div>
-        <div class="mk-tabs"><span class="on">Home</span><span>Workout</span><span>Food</span><span>Progress</span></div>
-      </div></div>
-      <div class="glass g1"><span class="dot">@include('partials.i', ['n' => 'check'])</span><div><b>Checked in</b>Have a good workout!</div></div>
-      <div class="glass g2"><span class="dot">@include('partials.i', ['n' => 'bolt'])</span><div><b>Plan approved</b>by your trainer</div></div>
+    <div class="collage" data-reveal style="--d:.2s">
+      @include('partials.photo', ['slot' => 'hero-1', 'class' => 'c1', 'alt' => 'Training at '.$gymName])
+      @include('partials.photo', ['slot' => 'hero-2', 'class' => 'c2', 'alt' => 'Inside '.$gymName, 'icon' => 'heart'])
+      @include('partials.photo', ['slot' => 'hero-3', 'class' => 'c3', 'alt' => 'Members at '.$gymName, 'icon' => 'bolt'])
+      <div class="glass g1" aria-hidden="true"><span class="dot">@include('partials.i', ['n' => 'check'])</span><div><b>Plan approved</b>by your trainer</div></div>
     </div>
   </div></div>
   <span class="scrollcue" aria-hidden="true"></span>
@@ -59,6 +43,42 @@
 </div></div></div>
 
 <section class="sec light" style="padding-top:6rem"><div class="wrap">
+  <div class="sechead">
+    <div><p class="eyebrow dk" data-reveal>Inside the gym</p><h2 data-reveal style="margin:0">Take a look<br>around.</h2></div>
+    <p class="lead" data-reveal>Strength machines, free weights and cardio, with a trainer who is on the floor with you.</p>
+  </div>
+  <div class="gallery">
+    @include('partials.photo', ['slot' => 'floor', 'class' => 'g-big', 'caption' => 'The training floor', 'alt' => 'The training floor at '.$gymName])
+    @include('partials.photo', ['slot' => 'free-weights', 'class' => 'g-a', 'caption' => 'Free weights', 'icon' => 'dumbbell'])
+    @include('partials.photo', ['slot' => 'machines', 'class' => 'g-b', 'caption' => 'Strength machines', 'icon' => 'layers'])
+    @include('partials.photo', ['slot' => 'cardio', 'class' => 'g-c', 'caption' => 'Cardio', 'icon' => 'heart'])
+    @include('partials.photo', ['slot' => 'community', 'class' => 'g-d', 'caption' => 'Training together', 'icon' => 'user'])
+  </div>
+</div></section>
+
+<section class="sec white"><div class="wrap"><div class="quote">
+  @include('partials.photo', ['slot' => 'trainer', 'class' => 'portrait', 'alt' => $owner, 'icon' => 'user', 'caption' => $owner.' · Owner and head trainer'])
+  <div class="txt" data-reveal style="--d:.1s"><p class="eyebrow dk" style="margin-bottom:1.3rem">Meet your trainer</p>
+    @if ($about)@foreach (array_slice($about, 0, 2) as $para)<p>{{ $para }}</p>@endforeach
+    @else<p>Your trainer is the owner. He knows your name, your goal and your progress.</p>@endif
+    <ul class="infolist" style="margin:1.4rem 0 1.6rem">
+      <li>@include('partials.i', ['n' => 'check'])<span>Every member's plan is checked and approved by {{ $owner }} personally.</span></li>
+      <li>@include('partials.i', ['n' => 'check'])<span>Sets and reps are set for you, not copied from a template.</span></li>
+    </ul>
+    <p style="margin:0"><a class="btn ghost" href="{{ route('about') }}">More about us @include('partials.i', ['n' => 'arrow'])</a></p></div>
+</div></div></section>
+
+<section class="sec deep"><div class="wrap">
+  <div class="sechead"><div><p class="eyebrow" data-reveal>Programs</p><h2 data-reveal style="margin:0">Train for<br>what you want.</h2></div>
+    <p class="lead" data-reveal>Tell us your goal and we build the plan around it, workouts and meals together.</p></div>
+  <div class="programs">
+    <a class="prog" href="{{ route('contact') }}" data-reveal>@include('partials.photo', ['slot' => 'program-weight', 'alt' => 'Weight management', 'icon' => 'heart'])<div><h3>Weight management</h3><p>Steady fat loss with workouts and a meal plan that fits your calories.</p><span class="more">Ask about it @include('partials.i', ['n' => 'arrow'])</span></div></a>
+    <a class="prog" href="{{ route('contact') }}" data-reveal style="--d:.08s">@include('partials.photo', ['slot' => 'program-muscle', 'alt' => 'Muscle building', 'icon' => 'dumbbell'])<div><h3>Muscle building</h3><p>Progressive training and enough protein, with sets and reps chosen for you.</p><span class="more">Ask about it @include('partials.i', ['n' => 'arrow'])</span></div></a>
+    <a class="prog" href="{{ route('contact') }}" data-reveal style="--d:.16s">@include('partials.photo', ['slot' => 'program-fitness', 'alt' => 'General fitness', 'icon' => 'bolt'])<div><h3>General fitness</h3><p>Move well, get stronger and feel good, at a pace that suits you.</p><span class="more">Ask about it @include('partials.i', ['n' => 'arrow'])</span></div></a>
+  </div>
+</div></section>
+
+<section class="sec light"><div class="wrap">
   <div class="sechead">
     <div><p class="eyebrow dk" data-reveal>Why train with us</p><h2 data-reveal style="margin:0">A small gym<br>on purpose.</h2></div>
     <p class="lead" data-reveal>You are never just a number. Everything here is built around knowing you and helping you get where you are going.</p>
@@ -119,21 +139,17 @@
   <p style="margin-top:2rem" data-reveal><a href="{{ route('pricing') }}"><b>Full pricing details &rarr;</b></a></p>
 </div></section>
 
-@if ($about)
-<section class="sec white"><div class="wrap"><div class="quote">
-  <div class="portrait" data-reveal>@include('partials.lanes', ['class' => 'lanes'])<span class="mono">{{ strtoupper(mb_substr($owner, 0, 1)) }}</span><div class="cap"><b>{{ $owner }}</b>Owner and head trainer</div></div>
-  <div class="txt" data-reveal style="--d:.1s"><p class="eyebrow dk" style="margin-bottom:1.3rem">About us</p>
-    @foreach (array_slice($about, 0, 2) as $para)<p>{{ $para }}</p>@endforeach
-    <p style="margin-top:1.6rem"><a class="btn ghost" href="{{ route('about') }}">More about us @include('partials.i', ['n' => 'arrow'])</a></p></div>
-</div></div></section>
-@endif
-
 <section class="sec deep"><div class="wrap">
-  <div class="sechead"><div><p class="eyebrow" data-reveal>Visit us</p><h2 data-reveal style="margin:0">Come and see<br>for yourself.</h2></div></div>
-  <div class="visit">
-    <div class="vc" data-reveal><span class="fi">@include('partials.i', ['n' => 'pin'])</span><h3>Address</h3><div>{{ $S('gym_address') }}</div></div>
-    <div class="vc" data-reveal style="--d:.08s"><span class="fi">@include('partials.i', ['n' => 'clock'])</span><h3>Opening hours</h3><div>{{ $S('gym_hours') }}</div></div>
-    <div class="vc" data-reveal style="--d:.16s"><span class="fi">@include('partials.i', ['n' => 'chat'])</span><h3>Call or WhatsApp</h3><a href="tel:{{ $digits }}">{{ $S('gym_phone') }}</a></div>
+  <div class="visitwrap">
+    <div>
+      <p class="eyebrow" data-reveal>Visit us</p><h2 data-reveal>Come and see<br>for yourself.</h2>
+      <div class="visit one">
+        <div class="vc" data-reveal><span class="fi">@include('partials.i', ['n' => 'pin'])</span><h3>Address</h3><div>{{ $S('gym_address') }}</div></div>
+        <div class="vc" data-reveal style="--d:.08s"><span class="fi">@include('partials.i', ['n' => 'clock'])</span><h3>Opening hours</h3><div>{{ $S('gym_hours') }}</div></div>
+        <div class="vc" data-reveal style="--d:.16s"><span class="fi">@include('partials.i', ['n' => 'chat'])</span><h3>Call or WhatsApp</h3><a href="tel:{{ $digits }}">{{ $S('gym_phone') }}</a></div>
+      </div>
+    </div>
+    @include('partials.photo', ['slot' => 'visit', 'class' => 'visitphoto', 'alt' => 'Outside '.$gymName, 'icon' => 'pin'])
   </div>
   <div class="ctaband" data-reveal>@include('partials.lanes', ['class' => 'lanes'])
     <h2>Ready to walk in?</h2><p>Leave your details and we will get back to you, or just come by.</p>
