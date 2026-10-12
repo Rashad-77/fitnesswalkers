@@ -2,7 +2,7 @@
 document.addEventListener('click', function (e) {
   document.querySelectorAll('details.menu[open]').forEach(function (d) { if (!d.contains(e.target)) d.removeAttribute('open'); });
   var t = e.target.closest('[data-toggle-menu]');
-  if (t) { document.querySelector('.side').classList.toggle('open'); }
+  if (t) { var sd = document.querySelector('.side'); if (sd) { sd.classList.toggle('open'); document.body.classList.toggle('menu-open', sd.classList.contains('open')); } }
   var c = e.target.closest('[data-confirm]');
   if (c && !confirm(c.getAttribute('data-confirm'))) { e.preventDefault(); }
 });

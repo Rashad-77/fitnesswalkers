@@ -186,12 +186,14 @@ class UpgradesTest extends TestCase
             ->assertSee('Amaya Wijesinghe')->assertSee('Present today')->assertSee('FW-0001', false);
     }
 
-    public function test_admin_menu_has_five_sections_and_old_names_are_gone(): void
+    public function test_admin_menu_lists_every_page_always_visible_with_no_tab_rows(): void
     {
         $this->seed(DummySeeder::class);
         $html = $this->actingAs($this->owner())->get(route('admin.members.index'))->assertOk()->getContent();
-        foreach (['Today', 'Members', 'Finances', 'Library', 'Settings', 'Renewals', 'Enquiries', 'Workout requests'] as $w) $this->assertStringContainsString($w, $html);
-        foreach (['Renewals &amp; overdue', 'Quiet members', 'Change history', 'Placeholders', '>Money<', 'Not training lately'] as $old) $this->assertStringNotContainsString($old, $html);
+        foreach (['Overview', 'People', 'Training', 'Money', 'Gym', 'Today', 'Members', 'Enquiries', 'Renewals', 'Announcements', 'Workout requests', 'Meal plans', 'Exercises',
+            'Workout templates', 'Equipment', 'Foods', 'Payments', 'Packages', 'Expenses', 'Reports', 'Check-in QR', 'Gym profile', 'My account', 'Data export', 'Activity log'] as $w) $this->assertStringContainsString($w, $html);
+        $this->assertStringNotContainsString('class="subnav"', $html, 'the old tab row is gone');
+        foreach (['Renewals &amp; overdue', 'Quiet members', 'Change history', '>Money<', 'Not training lately', 'Food prices'] as $old) $this->assertStringNotContainsString($old, $html);
         $this->get(route('admin.quiet'))->assertRedirect(route('admin.members.index', ['filter' => 'quiet']));
     }
 

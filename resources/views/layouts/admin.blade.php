@@ -1,23 +1,32 @@
 @php
   $gym = \App\Models\Setting::get('gym_name', 'FitnessWalkers');
   $dummyTotal = \Illuminate\Support\Facades\Cache::remember('dummy_total', 30, fn () => \App\Support\Dummy::total());
-  $sections = \App\Support\AdminNav::sections();
-  $cur = \App\Support\AdminNav::current($sections);
-  $tabs = $sections[$cur]['tabs'];
+  $groups = \App\Support\AdminNav::groups();
+  $label = \App\Support\AdminNav::currentLabel($groups);
 @endphp
 <!doctype html><html lang="en"><head>@include('partials.head')<title>@yield('title', 'Admin') - {{ $gym }}</title></head>
 <body>
 <div class="shell">
-  <aside class="side">
-    <a class="brand" href="{{ route('admin.dashboard') }}">@include('partials.logo')</a>
-    @foreach ($sections as $key => $s)
-      <a class="nav {{ $cur === $key ? 'on' : '' }}" href="{{ route($s['route']) }}">{!! \App\Support\AdminNav::icon($s['icon']) !!}{{ $s['label'] }}</a>
-    @endforeach
-    <div class="sidefoot"><a href="{{ route('home') }}" target="_blank" rel="noopener">View website &nearr;</a></div>
+  <aside class="side" id="side" aria-label="Main menu">
+    <a class="brand" href="{{ route('admin.dashboard') }}">@include('partials.logo')<span class="brandtag">Owner area</span></a>
+    <nav class="sidenav">
+      @foreach ($groups as $g)
+        <div class="sec">{{ $g['label'] }}</div>
+        @foreach ($g['items'] as $i)
+          <a class="nav {{ request()->routeIs(...$i[2]) ? 'on' : '' }}" href="{{ route($i[1]) }}" @if (request()->routeIs(...$i[2])) aria-current="page" @endif>{!! \App\Support\AdminNav::icon($i[3]) !!}<span>{{ $i[0] }}</span>@if (! empty($i[4]))<span class="cnt">{{ $i[4] }}</span>@endif</a>
+        @endforeach
+      @endforeach
+    </nav>
+    <div class="sidefoot">
+      <a class="nav" href="{{ route('home') }}" target="_blank" rel="noopener">{!! \App\Support\AdminNav::icon('globe') !!}<span>View website</span></a>
+      <form method="post" action="{{ route('logout') }}">@csrf<button class="nav">{!! \App\Support\AdminNav::icon('logout') !!}<span>Sign out</span></button></form>
+    </div>
   </aside>
+  <div class="scrim" data-toggle-menu></div>
   <div class="main">
     <div class="top">
       <button class="menu-btn" data-toggle-menu aria-label="Menu">{!! \App\Support\AdminNav::icon('menu') !!}</button>
+      <span class="toptitle">{{ $label }}</span>
       <form class="topsearch" method="get" action="{{ route('admin.members.index') }}" role="search">
         {!! \App\Support\AdminNav::icon('search') !!}
         <input type="search" name="q" placeholder="Find a member by name, phone or number" value="{{ request()->routeIs('admin.members.index') ? request('q') : '' }}" aria-label="Find a member">
@@ -41,14 +50,7 @@
         </div>
       </details>
     </div>
-    @if (count($tabs) > 1)
-      <nav class="subnav" aria-label="{{ $sections[$cur]['label'] }}">
-        @foreach ($tabs as $t)
-          <a class="{{ request()->routeIs(...$t[2]) ? 'on' : '' }}" href="{{ route($t[1]) }}">{{ $t[0] }}@if (! empty($t[3]))<span class="cnt">{{ $t[3] }}</span>@endif</a>
-        @endforeach
-      </nav>
-    @endif
-    @if ($dummyTotal > 0 && $cur === 'today')
+    @if ($dummyTotal > 0 && request()->routeIs('admin.dashboard'))
       <div class="dummybar">This is sample data ({{ $dummyTotal }} rows). <a href="{{ route('admin.placeholders') }}">See what to replace</a></div>
     @endif
     <div class="page">
@@ -58,4 +60,5 @@
   </div>
 </div>
 <script src="/js/app.js"></script>
+@stack('scripts')
 </body></html>
