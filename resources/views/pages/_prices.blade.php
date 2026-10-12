@@ -8,9 +8,9 @@
       $months = max(1, round($p->duration_days / 30));
       $monthly = $p->price / $months;
     @endphp
-    <div class="price {{ $p->id === $mid ? 'best' : '' }}">
+    <div class="price {{ $p->id === $mid ? 'best' : '' }}" data-reveal style="--d:{{ $loop->index * .08 }}s">
       @if ($p->id === $mid)<span class="tag">Popular</span>@endif
-      <h3 style="margin:.2rem 0">{{ $p->name }}</h3>
+      <h3>{{ $p->name }}</h3>
       <div class="amt">{{ rs($p->price) }}</div>
       <div class="per">for {{ $p->duration_days }} days @if ($months > 1) &middot; about {{ rs(round($monthly)) }} a month @endif</div>
       <ul><li>Use of all gym equipment</li><li>Workout plan from the trainer</li><li>Member page on your phone</li></ul>

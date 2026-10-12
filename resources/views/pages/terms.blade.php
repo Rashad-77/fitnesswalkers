@@ -2,8 +2,8 @@
 @section('title', 'Terms and conditions')
 @section('content')
 @php $gym = \App\Models\Setting::get('gym_name', 'FitnessWalkers'); @endphp
-<section class="sec"><div class="wrap"><div class="prose">
-  <h1 style="margin:0 0 .3rem">Terms and conditions</h1>
+<section class="pagehero slim">@include('partials.lanes', ['class' => 'lanes'])<div class="wrap"><p class="eyebrow">Legal</p><h1>Terms and conditions</h1><p>The ground rules for training with us.</p></div></section>
+<section class="sec light"><div class="wrap"><div class="legal"><div class="prose">
   <div class="draftnote"><b>Draft template.</b> The owner should read each point, change anything that is not how the gym really works, and have it checked before the site goes live.</div>
 
   <h2>Membership</h2>
@@ -32,5 +32,5 @@
 
   <h2>Changes</h2>
   <p>We may update these terms. The latest version is always on this page. Questions? <a href="{{ route('contact') }}">Contact us</a>.</p>
-</div></div></section>
+</div></div></div></section>
 @endsection

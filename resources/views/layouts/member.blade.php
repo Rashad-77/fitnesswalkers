@@ -11,7 +11,7 @@
 <!doctype html><html lang="en"><head>@include('partials.head')<title>@yield('title', 'Home') - {{ $gym }}</title></head>
 <body>
 <div class="mshell">
-  <div class="mtop"><a href="{{ route('member.home') }}"><img src="/img/logo-banner.png" alt="{{ $gym }}"></a>
+  <div class="mtop"><a href="{{ route('member.home') }}">@include('partials.logo')</a>
     <a class="me {{ request()->routeIs('member.me', 'member.membership', 'member.announcements') ? 'on' : '' }}" href="{{ route('member.me') }}" aria-label="Me: membership, news and settings">
       {!! $svg('<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 16 0v1"/>') !!}<span>Account</span></a></div>
   <div class="mpage">

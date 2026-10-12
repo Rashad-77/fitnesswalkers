@@ -2,8 +2,8 @@
 @section('title', 'Privacy policy')
 @section('content')
 @php $gym = \App\Models\Setting::get('gym_name', 'FitnessWalkers'); @endphp
-<section class="sec"><div class="wrap"><div class="prose">
-  <h1 style="margin:0 0 .3rem">Privacy policy</h1>
+<section class="pagehero slim">@include('partials.lanes', ['class' => 'lanes'])<div class="wrap"><p class="eyebrow">Legal</p><h1>Privacy policy</h1><p>How we look after your information.</p></div></section>
+<section class="sec light"><div class="wrap"><div class="legal"><div class="prose">
   <div class="draftnote"><b>Draft template.</b> This is a plain starting text. The owner should read it, change anything that is not true for the gym, and have it checked before the site goes live.</div>
 
   <h2>What we collect</h2>
@@ -30,5 +30,5 @@
 
   <h2>Contact</h2>
   <p>Questions about this policy: <a href="{{ route('contact') }}">contact us</a>.</p>
-</div></div></section>
+</div></div></div></section>
 @endsection

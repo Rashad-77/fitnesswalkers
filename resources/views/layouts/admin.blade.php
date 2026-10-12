@@ -9,7 +9,7 @@
 <body>
 <div class="shell">
   <aside class="side">
-    <a class="brand" href="{{ route('admin.dashboard') }}"><img src="/img/logo-banner.png" alt="{{ $gym }}"></a>
+    <a class="brand" href="{{ route('admin.dashboard') }}">@include('partials.logo')</a>
     @foreach ($sections as $key => $s)
       <a class="nav {{ $cur === $key ? 'on' : '' }}" href="{{ route($s['route']) }}">{!! \App\Support\AdminNav::icon($s['icon']) !!}{{ $s['label'] }}</a>
     @endforeach
