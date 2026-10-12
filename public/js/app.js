@@ -32,3 +32,31 @@ if ('serviceWorker' in navigator) {
   }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
   items.forEach(function (el) { io.observe(el); });
 })();
+
+/* Owner top bar: find a member as you type. */
+(function () {
+  var form = document.querySelector('.topsearch[data-search]');
+  if (!form) return;
+  var input = form.querySelector('input'), box = document.createElement('div'), timer, seq = 0;
+  box.className = 'livebox'; box.hidden = true; form.appendChild(box);
+  var esc = function (s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; };
+  input.setAttribute('autocomplete', 'off');
+  input.addEventListener('input', function () {
+    clearTimeout(timer);
+    var q = input.value.trim();
+    if (q.length < 2) { box.hidden = true; return; }
+    timer = setTimeout(function () {
+      var my = ++seq;
+      fetch(form.getAttribute('data-search') + '?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+        .then(function (r) { return r.json(); }).then(function (rows) {
+          if (my !== seq) return;
+          box.innerHTML = rows.length ? rows.map(function (m) {
+            return '<a href="' + esc(m.url) + '"><i>' + esc(m.initials) + '</i><span><b>' + esc(m.name) + '</b><small>' + esc(m.no) + (m.phone ? ' · ' + esc(m.phone) : '') + '</small></span><em class="b ' + esc(m.status) + '">' + esc(m.status === 'none' ? 'no package' : m.status) + '</em></a>';
+          }).join('') : '<div class="none">No member found. Press Enter to search the full list.</div>';
+          box.hidden = false;
+        }).catch(function () {});
+    }, 180);
+  });
+  document.addEventListener('click', function (e) { if (!form.contains(e.target)) box.hidden = true; });
+  input.addEventListener('keydown', function (e) { if (e.key === 'Escape') box.hidden = true; });
+})();

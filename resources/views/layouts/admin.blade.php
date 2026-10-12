@@ -27,7 +27,7 @@
     <div class="top">
       <button class="menu-btn" data-toggle-menu aria-label="Menu">{!! \App\Support\AdminNav::icon('menu') !!}</button>
       <span class="toptitle">{{ $label }}</span>
-      <form class="topsearch" method="get" action="{{ route('admin.members.index') }}" role="search">
+      <form class="topsearch" method="get" action="{{ route('admin.members.index') }}" role="search" data-search="{{ route('admin.search') }}">
         {!! \App\Support\AdminNav::icon('search') !!}
         <input type="search" name="q" placeholder="Find a member by name, phone or number" value="{{ request()->routeIs('admin.members.index') ? request('q') : '' }}" aria-label="Find a member">
       </form>

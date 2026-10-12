@@ -622,3 +622,23 @@ input[type=checkbox],input[type=radio]{accent-color:var(--fern)}
 .visit.one{grid-template-columns:1fr;margin-top:1.6rem}
 .visitphoto{aspect-ratio:4/5;border-radius:30px;box-shadow:var(--shadow-lg)}
 @media(max-width:860px){.visitwrap{grid-template-columns:1fr;gap:2rem} .visitphoto{aspect-ratio:4/3}}
+.price .ptag{margin:-.7rem 0 1rem;color:var(--mut);font-size:.9rem} .price.best .ptag{color:#a9c2b4}
+.price .save{display:inline-block;margin-left:.4rem;padding:.1rem .55rem;border-radius:99px;background:var(--lime);color:var(--canopy);font-weight:800;font-size:.76rem}
+
+/* sortable table headings, receipt */
+.sortlink{color:inherit} .sortlink:hover{text-decoration:none;color:var(--fern)} .sortlink.on{color:var(--ink)}
+.receipt{border-radius:18px;border:1px solid var(--line);border-style:solid;box-shadow:var(--shadow-lg);padding:1.8rem}
+.receipt .rlogo{display:inline-block;margin-bottom:.4rem;font-size:1.3rem} .receipt .rtitle{font-size:.82rem;letter-spacing:.2em;text-transform:uppercase;color:var(--mut);margin:.4rem 0 1rem}
+.receipt table td{padding:.5rem 0;border-bottom:1px dashed #dde5d4} .receipt .ramt td{border-bottom:2px solid var(--ink)}
+.receipt hr{border:0;border-top:1px solid var(--line);margin:1rem 0}
+
+/* attendance heat map */
+.heatwrap{overflow-x:auto} .heat{display:grid;gap:4px;min-width:320px;max-width:560px}
+.hrow{display:grid;grid-template-columns:3.4rem repeat(7,1fr);gap:4px;align-items:center} .hrow>span{font-size:.72rem;color:var(--mut);white-space:nowrap}
+.hhead b{font-size:.72rem;text-align:center;color:var(--mut);font-weight:700}
+.hc{display:grid;place-items:center;height:30px;border-radius:7px;background:#eef2e9;font-style:normal;font-size:.75rem;font-weight:700} .hc.future{background:transparent;border:1px dashed #dde5d4}
+.topsearch{position:relative} .livebox{position:absolute;left:0;right:0;top:calc(100% + 8px);background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);padding:.35rem;z-index:60}
+.livebox a{display:flex;align-items:center;gap:.7rem;padding:.55rem .65rem;border-radius:11px;color:var(--ink)} .livebox a:hover{background:#f1f5ec;text-decoration:none}
+.livebox i{flex:none;width:34px;height:34px;border-radius:50%;background:var(--lime-l);color:var(--fern);display:grid;place-items:center;font-style:normal;font-weight:800;font-size:.8rem}
+.livebox span{flex:1;min-width:0;display:flex;flex-direction:column} .livebox small{color:var(--mut)} .livebox em{font-style:normal}
+.livebox .none{padding:.8rem;color:var(--mut);font-size:.9rem}

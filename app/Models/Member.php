@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Member extends Model
 {
     protected $guarded = [];
-    protected $casts = ['dob' => 'date', 'joined_on' => 'date', 'frozen' => 'boolean', 'is_dummy' => 'boolean',
+    protected $casts = ['dob' => 'date', 'joined_on' => 'date', 'frozen' => 'boolean', 'frozen_at' => 'date', 'is_dummy' => 'boolean',
         'health_answers' => 'array', 'health_flag' => 'boolean', 'waiver_accepted_at' => 'datetime'];
 
     public function user(): BelongsTo { return $this->belongsTo(User::class); }

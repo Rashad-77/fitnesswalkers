@@ -48,7 +48,7 @@ class PaymentsTest extends TestCase
         $this->assertEquals(0.0, $ms->fresh()->balance());
         $this->assertCount(2, Payment::all());
         $this->assertCount(2, Payment::pluck('receipt_no')->unique());
-        $this->get(route('admin.payments.show', Payment::first()))->assertOk()->assertSee('PAYMENT RECEIPT');
+        $this->get(route('admin.payments.show', Payment::first()))->assertOk()->assertSee('Payment receipt');
     }
 
     public function test_membership_for_a_different_member_is_rejected(): void

@@ -21,7 +21,7 @@
   </div>
 
   <div class="formcard" data-reveal style="--d:.1s">
-    <h2>Membership enquiry</h2>
+    <h2>{{ $chosen ? 'Join the '.$chosen->name.' package' : 'Membership enquiry' }}</h2>
     <p class="muted">Leave your details and we will contact you. We use them only to reply to your enquiry.</p>
     @if (session('ok'))<div class="alert ok">{{ session('ok') }}</div>@endif
     @if ($errors->any())<div class="alert warn">{{ $errors->first() }}</div>@endif
@@ -31,7 +31,7 @@
         <div class="f"><label for="eq-name">Your name *</label><input id="eq-name" type="text" name="name" value="{{ old('name') }}" required></div>
         <div class="f"><label for="eq-phone">Phone or WhatsApp *</label><input id="eq-phone" type="tel" name="phone" value="{{ old('phone') }}" required placeholder="077 123 4567"></div>
         <div class="f"><label for="eq-email">Email (optional)</label><input id="eq-email" type="email" name="email" value="{{ old('email') }}"></div>
-        <div class="f"><label for="eq-int">Area of interest</label><select id="eq-int" name="interest"><option value="">Choose one</option>@foreach (['Weight management', 'Muscle building', 'General fitness', 'Pricing information'] as $o)<option @selected(old('interest') === $o)>{{ $o }}</option>@endforeach</select></div>
+        <div class="f"><label for="eq-int">Area of interest</label><select id="eq-int" name="interest"><option value="">Choose one</option>@foreach (array_merge($plans->map(fn ($p) => 'Joining: '.$p->name.' package')->all(), ['Weight management', 'Muscle building', 'General fitness', 'Pricing information']) as $o)<option @selected(old('interest', $chosen ? 'Joining: '.$chosen->name.' package' : '') === $o)>{{ $o }}</option>@endforeach</select></div>
       </div>
       <div class="f"><label for="eq-msg">Additional information</label><textarea id="eq-msg" name="message" rows="3">{{ old('message') }}</textarea></div>
       <button class="btn">Submit enquiry @include('partials.i', ['n' => 'arrow'])</button>

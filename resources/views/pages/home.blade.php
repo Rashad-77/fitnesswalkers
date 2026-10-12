@@ -135,7 +135,7 @@
     <div><p class="eyebrow dk" data-reveal>Membership</p><h2 data-reveal style="margin:0">Simple prices.</h2></div>
     <p class="lead" data-reveal>Pay at the gym. No online payment needed.</p>
   </div>
-  @include('pages._prices', ['plans' => $plans])
+  @include('pages._prices', ['plans' => $plans, 'compact' => true])
   <p style="margin-top:2rem" data-reveal><a href="{{ route('pricing') }}"><b>Full pricing details &rarr;</b></a></p>
 </div></section>
 

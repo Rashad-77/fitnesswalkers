@@ -25,7 +25,7 @@ class FinanceTest extends TestCase
         $res = $this->actingAs($owner)->get(route('admin.finance'))->assertOk();
         $res->assertViewHas('income', 4000.0)->assertViewHas('spent', 1500.0);
         $this->assertEquals(['Monthly' => 3000.0, 'Other / unassigned' => 1000.0], $res->viewData('byPlan')->all());
-        $this->assertEquals(4000.0, array_sum($res->viewData('incSeries')) - 777);   // 6-month series includes the older payment
+        $this->assertEquals(4000.0, array_sum(array_slice($res->viewData('trend')['income'], -6)) - 777);   // the 12-month trend includes the older payment
         $this->get(route('admin.dashboard'))->assertViewHas('income', 4000.0)->assertViewHas('owed', 2000.0);
         $this->get(route('admin.payments.daily', ['date' => $thisMonth]))->assertOk()->assertSee('Rs. 4,000');
     }

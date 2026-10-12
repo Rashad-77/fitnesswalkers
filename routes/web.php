@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
 
+    Route::get('search', [Admin\SearchController::class, 'members'])->name('search');
     Route::resource('members', Admin\MemberController::class);
     Route::post('members/{member}/password', [Admin\MemberController::class, 'resetPassword'])->name('members.password');
     Route::post('members/{member}/freeze', [Admin\MemberController::class, 'toggleFreeze'])->name('members.freeze');

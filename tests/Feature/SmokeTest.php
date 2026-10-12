@@ -44,8 +44,7 @@ class SmokeTest extends TestCase
             if (in_array($name, ['member.checkin', 'member.bmi'])) continue; // both redirect
             $params = [];
             foreach ($route->parameterNames() as $p) $params[$p] = $p === 'day' ? 1 : $this->sampleKey($p);
-            // member 3 owns the seeded app-made diet plan the shopping list needs
-            $this->actingAs($name === 'member.diet.shopping' ? Member::find(3)->user : $member->user);
+            $this->actingAs($member->user);   // the first member owns the seeded app-made meal plan the shopping list needs
             $this->get(route($name, $params))->assertOk();
             $pages++;
         }

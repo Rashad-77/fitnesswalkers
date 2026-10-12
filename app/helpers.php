@@ -48,3 +48,12 @@ if (! function_exists('gym_img')) {
         return null;
     }
 }
+
+if (! function_exists('initials')) {
+    /** "Kasun Perera" => "KP" */
+    function initials(?string $name): string
+    {
+        $parts = preg_split('/\s+/', trim((string) $name)) ?: [];
+        return mb_strtoupper(mb_substr($parts[0] ?? '', 0, 1).(count($parts) > 1 ? mb_substr(end($parts), 0, 1) : ''));
+    }
+}

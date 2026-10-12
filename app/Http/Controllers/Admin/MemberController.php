@@ -41,9 +41,16 @@ class MemberController extends Controller
         };
         $counts = [];
         foreach (array_keys(self::FILTERS) as $f) $counts[$f] = $all->filter(fn ($m) => $match($m, $f))->count();
-        $members = $all->filter(fn ($m) => $match($m, $filter))->values();
+        $sort = $r->query('sort'); $dir = $r->query('dir') === 'desc' ? 'desc' : 'asc';
+        $keys = [
+            'no' => fn ($m) => $m->member_no, 'name' => fn ($m) => mb_strtolower($m->user->name), 'phone' => fn ($m) => (string) $m->user->phone,
+            'package' => fn ($m) => mb_strtolower((string) $m->currentMembership?->plan->name), 'status' => fn ($m) => $m->status(),
+            'ends' => fn ($m) => (string) $m->currentMembership?->ends_on?->format('Y-m-d'), 'visit' => fn ($m) => (string) ($last[$m->id] ?? ''), 'balance' => fn ($m) => $m->balanceDue(),
+        ];
+        if (! isset($keys[$sort])) { $sort = 'name'; }
+        $members = $all->filter(fn ($m) => $match($m, $filter))->sortBy($keys[$sort], SORT_NATURAL, $dir === 'desc')->values();
 
-        return view('admin.members.index', ['members' => $members, 'q' => $q, 'filter' => $filter, 'filters' => self::FILTERS, 'counts' => $counts, 'last' => $last]);
+        return view('admin.members.index', ['members' => $members, 'q' => $q, 'filter' => $filter, 'filters' => self::FILTERS, 'counts' => $counts, 'last' => $last, 'sort' => $sort, 'dir' => $dir]);
     }
 
     public function create(Request $r)
@@ -143,9 +150,18 @@ class MemberController extends Controller
 
     public function toggleFreeze(Member $member)
     {
-        $member->update(['frozen' => ! $member->frozen]);
-        AuditLog::record($member->frozen ? 'Froze membership' : 'Unfroze membership', $member->member_no);
-        return back()->with('ok', $member->frozen ? 'Membership frozen.' : 'Membership unfrozen.');
+        if (! $member->frozen) {
+            $member->update(['frozen' => true, 'frozen_at' => today()]);
+            AuditLog::record('Froze membership', $member->member_no);
+            return back()->with('ok', 'Membership frozen. The frozen days are added back when you unfreeze.');
+        }
+        // Unfreezing gives the frozen days back: the membership ends later by as many days as it was frozen.
+        $days = $member->frozen_at ? (int) $member->frozen_at->diffInDays(today()) : 0;
+        $ms = $member->currentMembership;
+        if ($ms && $days > 0) $ms->update(['ends_on' => $ms->ends_on->copy()->addDays($days)]);
+        $member->update(['frozen' => false, 'frozen_at' => null]);
+        AuditLog::record('Unfroze membership', $member->member_no, $days > 0 ? $days.' days added back' : null);
+        return back()->with('ok', 'Membership unfrozen.'.($ms && $days > 0 ? ' '.$days.' '.\Illuminate\Support\Str::plural('day', $days).' added back to the end date.' : ''));
     }
 
     public function addMembership(Request $r, Member $member)

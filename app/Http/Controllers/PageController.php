@@ -28,9 +28,10 @@ class PageController extends Controller
         return view('pages.pricing', ['plans' => $this->plans()]);
     }
 
-    public function contact()
+    public function contact(\Illuminate\Http\Request $r)
     {
-        return view('pages.contact');
+        $plans = $this->plans();
+        return view('pages.contact', ['plans' => $plans, 'chosen' => $plans->first(fn ($p) => $p->slug() === $r->query('plan'))]);
     }
 
     public function privacy()

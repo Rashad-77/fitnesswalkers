@@ -13,7 +13,10 @@
   <button class="btn dark">Search</button>
 </form>
 <div class="card"><div class="tw"><table>
-  <tr><th>No.</th><th>Name</th><th>Phone</th><th>Package</th><th>Status</th><th>Ends</th><th>Last visit</th><th class="right">Balance due</th></tr>
+  @php
+    $th = fn ($key, $label, $cls = '') => '<th class="'.$cls.'"><a class="sortlink '.($sort === $key ? 'on' : '').'" href="'.e(route('admin.members.index', array_filter(['filter' => $filter === 'all' ? null : $filter, 'q' => $q, 'sort' => $key, 'dir' => ($sort === $key && $dir === 'asc') ? 'desc' : ($key === 'balance' || $key === 'visit' ? 'desc' : 'asc')]))).'">'.$label.($sort === $key ? ($dir === 'asc' ? ' &#9650;' : ' &#9660;') : '').'</a></th>';
+  @endphp
+  <tr>{!! $th('no', 'No.') !!}{!! $th('name', 'Name') !!}{!! $th('phone', 'Phone') !!}{!! $th('package', 'Package') !!}{!! $th('status', 'Status') !!}{!! $th('ends', 'Ends') !!}{!! $th('visit', 'Last visit') !!}{!! $th('balance', 'Balance due', 'right') !!}</tr>
   @forelse ($members as $m)
     @php $lv = $last[$m->id] ?? null; @endphp
     <tr class="{{ $m->is_dummy ? 'dummy' : '' }}">

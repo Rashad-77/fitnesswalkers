@@ -130,9 +130,9 @@ class DummySeeder extends Seeder
     private function members(): void
     {
         $plans = [
-            Plan::create(['name' => 'Monthly', 'duration_days' => 30, 'price' => 5000] + $this->d),
-            Plan::create(['name' => 'Quarterly', 'duration_days' => 90, 'price' => 13500] + $this->d),
-            Plan::create(['name' => 'Annual', 'duration_days' => 365, 'price' => 48000] + $this->d),
+            Plan::create(['name' => 'Monthly', 'duration_days' => 30, 'price' => 5000, 'tagline' => 'Try it out, month by month', 'features' => "Use of the whole gym floor\nA workout plan from the trainer\nYour own member page"] + $this->d),
+            Plan::create(['name' => 'Quarterly', 'duration_days' => 90, 'price' => 13500, 'featured' => true, 'tagline' => 'Our most popular choice', 'features' => "Everything in Monthly\nA meal plan built around your workouts\nFreeze your membership once"] + $this->d),
+            Plan::create(['name' => 'Annual', 'duration_days' => 365, 'price' => 48000, 'tagline' => 'Best value for regulars', 'features' => "Everything in Quarterly\nThe lowest price per month"] + $this->d),
         ];
         // name, sex, dob, height, plan idx, days since latest start (negative = starts later), pay fraction, frozen
         $people = [
