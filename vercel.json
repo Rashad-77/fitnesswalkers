@@ -6,13 +6,5 @@
   },
   "rewrites": [
     { "source": "/(.*)", "destination": "/api/index.php" }
-  ],
-  "env": {
-    "APP_ENV": "production",
-    "APP_DEBUG": "false",
-    "LOG_CHANNEL": "stderr",
-    "SESSION_DRIVER": "database",
-    "CACHE_STORE": "database",
-    "QUEUE_CONNECTION": "sync"
-  }
+  ]
 }
